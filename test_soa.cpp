@@ -9,10 +9,6 @@ const int N = 400000;
 const int MAX_PAIRS = 30 * N;
 double L = 50.0;
 const double dt = 0.001;
-const int D = 4;
-enum {X, Y, Z};
-//double q[N][D];
-//double p[N][D];
 double qx[N],qy[N],qz[N];
 double px[N],py[N],pz[N];
 
@@ -27,14 +23,6 @@ int sorted_list[MAX_PAIRS];
 const double CUTOFF_LENGTH = 3.0;
 const double SEARCH_LENGTH = 3.3;
 const double CL2 = CUTOFF_LENGTH * CUTOFF_LENGTH;
-//----------------------------------------------------------------------
-typedef double v4df __attribute__((vector_size(32)));
-//----------------------------------------------------------------------
-void
-print256(v4df r) {
-  double *a = (double*)(&r);
-  printf("%.10f %.10f %.10f %.10f\n", a[0], a[1], a[2], a[3]);
-}
 //----------------------------------------------------------------------
 void
 add_particle(double x, double y, double z) {

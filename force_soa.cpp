@@ -14,10 +14,8 @@ double L = 50.0;
 const double dt = 0.001;
 const int D = 4;
 enum {X, Y, Z};
-//double q[N][D];
-//double p[N][D];
-double qx[N],qy[N],qz[N];
-double px[N],py[N],pz[N];
+double q[D][N];
+double p[D][N];
 
 int particle_number = 0;
 int number_of_pairs = 0;
@@ -43,9 +41,9 @@ void
 add_particle(double x, double y, double z) {
   static std::mt19937 mt(2);
   std::uniform_real_distribution<double> ud(0.0, 0.1);
-  qx[particle_number] = x + ud(mt);
-  qy[particle_number] = y + ud(mt);
-  qz[particle_number] = z + ud(mt);
+  q[X][particle_number] = x + ud(mt);
+  q[Y][particle_number] = y + ud(mt);
+  q[Z][particle_number] = z + ud(mt);
   particle_number++;
 }
 //----------------------------------------------------------------------
@@ -103,9 +101,9 @@ makepair(void) {
   }
   for (int i = 0; i < particle_number - 1; i++) {
     for (int j = i + 1; j < particle_number; j++) {
-      const double dx = qx[i] - qx[j];
-      const double dy = qy[i] - qy[j];
-      const double dz = qz[i] - qz[j];
+      const double dx = q[X][i] - q[X][j];
+      const double dy = q[Y][i] - q[Y][j];
+      const double dz = q[Z][i] - q[Z][j];
       const double r2 = dx * dx + dy * dy + dz * dz;
       if (r2 < SL2) {
         register_pair(i, j);
@@ -135,9 +133,9 @@ init(void) {
     }
   }
   for (int i = 0; i < particle_number; i++) {
-    px[i] = 0.0;
-    py[i] = 0.0;
-    pz[i] = 0.0;
+    p[X][i] = 0.0;
+    p[Y][i] = 0.0;
+    p[Z][i] = 0.0;
   }
 }
 //----------------------------------------------------------------------
@@ -146,19 +144,19 @@ force_pair(void){
   for(int k=0;k<number_of_pairs;k++){
     const int i = i_particles[k];
     const int j = j_particles[k];
-    double dx = qx[j] - qx[i];
-    double dy = qy[j] - qy[i];
-    double dz = qz[j] - qz[i];
+    double dx = q[X][j] - q[X][i];
+    double dy = q[Y][j] - q[Y][i];
+    double dz = q[Z][j] - q[Z][i];
     double r2 = (dx * dx + dy * dy + dz * dz);
     if (r2 > CL2) continue;
     double r6 = r2 * r2 * r2;
     double df = ((24.0 * r6 - 48.0) / (r6 * r6 * r2)) * dt;
-    px[i] += df * dx;
-    py[i] += df * dy;
-    pz[i] += df * dz;
-    px[j] -= df * dx;
-    py[j] -= df * dy;
-    pz[j] -= df * dz;
+    p[X][i] += df * dx;
+    p[Y][i] += df * dy;
+    p[Z][i] += df * dz;
+    p[X][j] -= df * dx;
+    p[Y][j] -= df * dy;
+    p[Z][j] -= df * dz;
   }
 }
 //----------------------------------------------------------------------
@@ -166,9 +164,9 @@ void
 force_sorted(void){
   const int pn =particle_number;
   for (int i=0; i<pn; i++) {
-    const double qx_key = qx[i];
-    const double qy_key = qy[i];
-    const double qz_key = qz[i];
+    const double qx_key = q[X][i];
+    const double qy_key = q[Y][i];
+    const double qz_key = q[Z][i];
     const int np = number_of_partners[i];
     double pfx = 0;
     double pfy = 0;
@@ -176,9 +174,9 @@ force_sorted(void){
     const int kp = pointer[i];
     for (int k=0; k<np; k++) {
       const int j = sorted_list[kp + k];
-      double dx = qx[j] - qx_key;
-      double dy = qy[j] - qy_key;
-      double dz = qz[j] - qz_key;
+      double dx = q[X][j] - qx_key;
+      double dy = q[Y][j] - qy_key;
+      double dz = q[Z][j] - qz_key;
       double r2 = (dx*dx + dy*dy + dz*dz);
       if (r2 > CL2) continue;
       double r6 = r2*r2*r2;
@@ -186,13 +184,13 @@ force_sorted(void){
       pfx += df*dx;
       pfy += df*dy;
       pfz += df*dz;
-      px[j] -= df*dx;
-      py[j] -= df*dy;
-      pz[j] -= df*dz;
+      p[X][j] -= df*dx;
+      p[Y][j] -= df*dy;
+      p[Z][j] -= df*dz;
     }
-    px[i] += pfx;
-    py[i] += pfy;
-    pz[i] += pfz;
+    p[X][i] += pfx;
+    p[Y][i] += pfy;
+    p[Z][i] += pfz;
   }
 }
 //----------------------------------------------------------------------
@@ -204,21 +202,21 @@ force_intrin(void){
   const v4df vc24 = _mm256_set_pd(24 * dt, 24 * dt, 24 * dt, 24 * dt);
   const v4df vc48 = _mm256_set_pd(48 * dt, 48 * dt, 48 * dt, 48 * dt);
   for (int i=0; i<pn; i++) {
-    const double qx_key = qx[i];
-    const double qy_key = qy[i];
-    const double qz_key = qz[i];
+    const double qx_key = q[X][i];
+    const double qy_key = q[Y][i];
+    const double qz_key = q[Z][i];
     const int np = number_of_partners[i];
     double pfx = 0;
     double pfy = 0;
     double pfz = 0;
     const int kp = pointer[i];
-    const v4df vqix = _mm256_set_pd(qx[i],qx[i],qx[i],qx[i]);
-    const v4df vqiy = _mm256_set_pd(qy[i],qy[i],qy[i],qy[i]);
-    const v4df vqiz = _mm256_set_pd(qz[i],qz[i],qz[i],qz[i]);
+    const v4df vqix = _mm256_set_pd(q[X][i],q[X][i],q[X][i],q[X][i]);
+    const v4df vqiy = _mm256_set_pd(q[Y][i],q[Y][i],q[Y][i],q[Y][i]);
+    const v4df vqiz = _mm256_set_pd(q[Z][i],q[Z][i],q[Z][i],q[Z][i]);
 
-    const v4df vpix = _mm256_set_pd(px[i],px[i],px[i],px[i]);
-    const v4df vpiy = _mm256_set_pd(py[i],py[i],py[i],py[i]);
-    const v4df vpiz = _mm256_set_pd(pz[i],pz[i],pz[i],pz[i]);
+    const v4df vpix = _mm256_set_pd(p[X][i],p[X][i],p[X][i],p[X][i]);
+    const v4df vpiy = _mm256_set_pd(p[Y][i],p[Y][i],p[Y][i],p[Y][i]);
+    const v4df vpiz = _mm256_set_pd(p[Z][i],p[Z][i],p[Z][i],p[Z][i]);
 
     for (int k=0; k<(np/4)*4; k+=4) {
       const int j_a = sorted_list[kp + k];
@@ -226,9 +224,9 @@ force_intrin(void){
       const int j_c = sorted_list[kp + k + 2];
       const int j_d = sorted_list[kp + k + 3];
 
-      const v4df vqjx = _mm256_set_pd(qx[j_a],qx[j_b],qx[j_c],qx[j_d]);
-      const v4df vqjy = _mm256_set_pd(qy[j_a],qy[j_b],qy[j_c],qy[j_d]);
-      const v4df vqjz = _mm256_set_pd(qz[j_a],qz[j_b],qz[j_c],qz[j_d]);
+      const v4df vqjx = _mm256_set_pd(q[X][j_a],q[X][j_b],q[X][j_c],q[X][j_d]);
+      const v4df vqjy = _mm256_set_pd(q[Y][j_a],q[Y][j_b],q[Y][j_c],q[Y][j_d]);
+      const v4df vqjz = _mm256_set_pd(q[Z][j_a],q[Z][j_b],q[Z][j_c],q[Z][j_d]);
 
       const v4df vdx = vqjx - vqix;
       const v4df vdy = vqjy - vqiy;
@@ -249,49 +247,49 @@ force_intrin(void){
       pfy += dfy[3];
       pfz += dfz[3];
 
-      px[j_a] -= dfx[3];
-      py[j_a] -= dfy[3];
-      pz[j_a] -= dfz[3];
+      p[X][j_a] -= dfx[3];
+      p[Y][j_a] -= dfy[3];
+      p[Z][j_a] -= dfz[3];
 
       pfx += dfx[2];
       pfy += dfy[2];
       pfz += dfz[2];
-      px[j_b] -= dfx[2];
-      py[j_b] -= dfy[2];
-      pz[j_b] -= dfz[2];
+      p[X][j_b] -= dfx[2];
+      p[Y][j_b] -= dfy[2];
+      p[Z][j_b] -= dfz[2];
 
       pfx += dfx[1];
       pfy += dfy[1];
       pfz += dfz[1];
-      px[j_c] -= dfx[1];
-      py[j_c] -= dfy[1];
-      pz[j_c] -= dfz[1];
+      p[X][j_c] -= dfx[1];
+      p[Y][j_c] -= dfy[1];
+      p[Z][j_c] -= dfz[1];
 
       pfx += dfx[0];
       pfy += dfy[0];
       pfz += dfz[0];
-      px[j_d] -= dfx[0];
-      py[j_d] -= dfy[0];
-      pz[j_d] -= dfz[0];
+      p[X][j_d] -= dfx[0];
+      p[Y][j_d] -= dfy[0];
+      p[Z][j_d] -= dfz[0];
     }
-    px[i] += pfx;
-    py[i] += pfy;
-    pz[i] += pfz;
+    p[X][i] += pfx;
+    p[Y][i] += pfy;
+    p[Z][i] += pfz;
     for (int k = (np / 4) * 4; k < np; k++) {
       const int j = sorted_list[kp + k];
-      double dx = qx[j] - qx_key;
-      double dy = qy[j] - qy_key;
-      double dz = qz[j] - qz_key;
+      double dx = q[X][j] - qx_key;
+      double dy = q[Y][j] - qy_key;
+      double dz = q[Z][j] - qz_key;
       double r2 = (dx*dx + dy*dy + dz*dz);
       if (r2 > CL2) continue;
       double r6 = r2*r2*r2;
       double df = ((24.0*r6-48.0)/(r6*r6*r2))*dt;
-      px[i] += df*dx;
-      py[i] += df*dy;
-      pz[i] += df*dz;
-      px[j] -= df*dx;
-      py[j] -= df*dy;
-      pz[j] -= df*dz;
+      p[X][i] += df*dx;
+      p[Y][i] += df*dy;
+      p[Z][i] += df*dz;
+      p[X][j] -= df*dx;
+      p[Y][j] -= df*dy;
+      p[Z][j] -= df*dz;
     }
   }
 }
@@ -300,17 +298,17 @@ void
 force_next(void) {
   const int pn = particle_number;
   for (int i = 0; i < pn; i++) {
-    const double qx_key = qx[i];
-    const double qy_key = qy[i];
-    const double qz_key = qz[i];
+    const double qx_key = q[X][i];
+    const double qy_key = q[Y][i];
+    const double qz_key = q[Z][i];
     double pfx = 0;
     double pfy = 0;
     double pfz = 0;
     const int kp = pointer[i];
     int ja = sorted_list[kp];
-    double dxa = qx[ja] - qx_key;
-    double dya = qy[ja] - qy_key;
-    double dza = qz[ja] - qz_key;
+    double dxa = q[X][ja] - qx_key;
+    double dya = q[Y][ja] - qy_key;
+    double dza = q[Z][ja] - qz_key;
     double df = 0.0;
     double dxb = 0.0, dyb = 0.0, dzb = 0.0;
     int jb = 0;
@@ -322,16 +320,16 @@ force_next(void) {
       double r2 = (dx * dx + dy * dy + dz * dz);
       const int j = ja;
       ja = sorted_list[k + 1];
-      dxa = qx[ja] - qx_key;
-      dya = qy[ja] - qy_key;
-      dza = qz[ja] - qz_key;
+      dxa = q[X][ja] - qx_key;
+      dya = q[Y][ja] - qy_key;
+      dza = q[Z][ja] - qz_key;
       if (r2 > CL2)continue;
       pfx += df * dxb;
       pfy += df * dyb;
       pfz += df * dzb;
-      px[jb] -= df * dxb;
-      py[jb] -= df * dyb;
-      pz[jb] -= df * dzb;
+      p[X][jb] -= df * dxb;
+      p[Y][jb] -= df * dyb;
+      p[Z][jb] -= df * dzb;
       const double r6 = r2 * r2 * r2;
       df = ((24.0 * r6 - 48.0) / (r6 * r6 * r2)) * dt;
       jb = j;
@@ -339,12 +337,12 @@ force_next(void) {
       dyb = dy;
       dzb = dz;
     }
-    px[jb] -= df * dxb;
-    py[jb] -= df * dyb;
-    pz[jb] -= df * dzb;
-    px[i] += pfx + df * dxb;
-    py[i] += pfy + df * dyb;
-    pz[i] += pfz + df * dzb;
+    p[X][jb] -= df * dxb;
+    p[Y][jb] -= df * dyb;
+    p[Z][jb] -= df * dzb;
+    p[X][i] += pfx + df * dxb;
+    p[Y][i] += pfy + df * dyb;
+    p[Z][i] += pfz + df * dzb;
   }
 }
 //----------------------------------------------------------------------
@@ -395,12 +393,12 @@ main(void) {
 #ifdef PAIR
   measure(&force_pair, "pair");
   for (int i = 0; i < 10; i++) {
-    printf("%.10f %.10f %.10f\n", px[i], py[i], pz[i]);
+    printf("%.10f %.10f %.10f\n", p[X][i], p[Y][i], p[Z][i]);
   }
 #elif INTRIN
   measure(&force_intrin, "intrin");
   for (int i = 0; i < 10; i++) {
-    printf("%.10f %.10f %.10f\n", px[i], py[i], pz[i]);
+    printf("%.10f %.10f %.10f\n", p[X][i], p[Y][i], p[Z][i]);
   }
 #else
   measure(&force_pair, "pair");

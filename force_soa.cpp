@@ -1,8 +1,11 @@
 #include <stdio.h>
+#include <iostream>
+#include <fstream>
 #include <immintrin.h>
 #include <random>
 #include <math.h>
 #include <sys/time.h>
+#include <sys/stat.h>
 //----------------------------------------------------------------------
 const double density = 1.0;
 const int N = 400000;
@@ -70,23 +73,8 @@ register_pair(int index1, int index2) {
 }
 //----------------------------------------------------------------------
 void
-makepair(void) {
-  const double SL2 = SEARCH_LENGTH * SEARCH_LENGTH;
+sortpair(void) {
   const int pn = particle_number;
-  for (int i = 0; i < pn; i++) {
-    number_of_partners[i] = 0;
-  }
-  for (int i = 0; i < particle_number - 1; i++) {
-    for (int j = i + 1; j < particle_number; j++) {
-      const double dx = qx[i] - qx[j];
-      const double dy = qy[i] - qy[j];
-      const double dz = qz[i] - qz[j];
-      const double r2 = dx * dx + dy * dy + dz * dz;
-      if (r2 < SL2) {
-        register_pair(i, j);
-      }
-    }
-  }
   int pos = 0;
   pointer[0] = 0;
   for (int i = 0; i < pn - 1; i++) {
@@ -103,6 +91,26 @@ makepair(void) {
     int index = pointer[i] + pointer2[i];
     sorted_list[index] = j;
     pointer2[i] ++;
+  }
+}
+//----------------------------------------------------------------------
+void
+makepair(void) {
+  const double SL2 = SEARCH_LENGTH * SEARCH_LENGTH;
+  const int pn = particle_number;
+  for (int i = 0; i < pn; i++) {
+    number_of_partners[i] = 0;
+  }
+  for (int i = 0; i < particle_number - 1; i++) {
+    for (int j = i + 1; j < particle_number; j++) {
+      const double dx = qx[i] - qx[j];
+      const double dy = qy[i] - qy[j];
+      const double dz = qz[i] - qz[j];
+      const double r2 = dx * dx + dy * dy + dz * dz;
+      if (r2 < SL2) {
+        register_pair(i, j);
+      }
+    }
   }
 }
 //----------------------------------------------------------------------
@@ -351,10 +359,39 @@ measure(void(*pfunc)(), const char *name) {
   fprintf(stderr, "N=%d, %s %f [sec]\n", particle_number, name, t);
 }
 //----------------------------------------------------------------------
+void
+loadpair(void) {
+  std::ifstream ifs("pair.dat", std::ios::binary);
+  ifs.read((char*)&number_of_pairs, sizeof(int));
+  ifs.read((char*)number_of_partners, sizeof(int)*N);
+  ifs.read((char*)i_particles, sizeof(int)*MAX_PAIRS);
+  ifs.read((char*)j_particles, sizeof(int)*MAX_PAIRS);
+}
+//----------------------------------------------------------------------
+void
+savepair(void) {
+  makepair();
+  std::ofstream ofs("pair.dat", std::ios::binary);
+  ofs.write((char*)&number_of_pairs, sizeof(int));
+  ofs.write((char*)number_of_partners, sizeof(int)*N);
+  ofs.write((char*)i_particles, sizeof(int)*MAX_PAIRS);
+  ofs.write((char*)j_particles, sizeof(int)*MAX_PAIRS);
+}
+//----------------------------------------------------------------------
 int
 main(void) {
   init();
-  makepair();
+  struct stat st;
+  int ret = stat("pair.dat", &st);
+  if (ret == 0) {
+    std::cerr << "A pair-file is found. I use it." << std::endl;
+    loadpair();
+  } else {
+    std::cerr << "Make pairlist." << std::endl;
+    savepair();
+  }
+  std::cerr << "Number of pairs: " << number_of_pairs << std::endl;
+  sortpair();
 #ifdef PAIR
   measure(&force_pair, "pair");
   for (int i = 0; i < 10; i++) {

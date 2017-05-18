@@ -1,8 +1,7 @@
 TARGET= aos.out aos_pair.out aos_intrin.out soa.out soa_pair.out soa_intrin.out aos_intrin_mat_transpose.out
 
 CC=g++
-CPPFLAGS=-O3 -std=c++11 -mavx
-#CPPFLAGS=-O3 -xHOST -std=c++11
+CPPFLAGS=-O3 -std=c++11 -march=native
 
 all: $(TARGET)
 
@@ -40,3 +39,4 @@ test: aos_pair.out aos_intrin.out soa_pair.out soa_intrin.out aos_intrin_mat_tra
 	./soa_intrin.out > soa_intrin.dat
 	diff soa_pair.dat soa_intrin.dat
 
+-include makefile.opt

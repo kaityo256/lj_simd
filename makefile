@@ -1,4 +1,4 @@
-TARGET= aos.out aos_pair.out aos_intrin.out soa.out soa_pair.out soa_intrin.out aos_intrin_mat_transpose.out
+TARGET= aos.out aos_pair.out aos_intrin.out soa.out soa_pair.out soa_intrin.out aos_intrin_mat_transpose.out aos_sorted_z.out 
 
 CC=g++
 CPPFLAGS=-O3 -std=c++11 -march=native
@@ -13,6 +13,12 @@ aos_pair.out: force_aos.cpp
 
 aos_intrin.out: force_aos.cpp
 	$(CC) $(CPPFLAGS) -DINTRIN $< -o $@
+
+aos_sorted_z.out: force_aos.cpp
+	$(CC) $(CPPFLAGS) -DSORTED_Z $< -o $@
+
+aos_sorted_z_intrin.out: force_aos.cpp
+	$(CC) $(CPPFLAGS) -DSORTED_Z_INTRIN $< -o $@
 
 aos_intrin_mat_transpose.out: force_aos.cpp
 	$(CC) $(CPPFLAGS) -DMAT_TRANSPOSE $< -o $@

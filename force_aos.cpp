@@ -508,7 +508,8 @@ force_sorted_z_intrin(void) {
   const int pn = particle_number;
   for (int i = 0; i < pn; i++) {
     const v4df vqi = _mm256_load_pd((double*)(z + i));
-    v4df vpi = _mm256_load_pd((double*)(p + i));
+    //v4df vpi = _mm256_load_pd((double*)(p + i));
+    v4df vpi = _mm256_load_pd((double*)(zp + i*8+4));
     const int np = number_of_partners[i];
     const int kp = pointer[i];
     for (int k = 0; k < (np / 4) * 4; k += 4) {

@@ -6,14 +6,8 @@
 #include <math.h>
 #include <sys/time.h>
 #include <sys/stat.h>
+#include "conf.hpp"
 //----------------------------------------------------------------------
-const double density = 1.0;
-const int N = 400000;
-const int MAX_PAIRS = 30 * N;
-double L = 50.0;
-const double dt = 0.001;
-const int D = 4;
-enum {X, Y, Z};
 double q[D][N];
 double p[D][N];
 
@@ -213,10 +207,6 @@ force_intrin(void){
     const v4df vqix = _mm256_set_pd(q[X][i],q[X][i],q[X][i],q[X][i]);
     const v4df vqiy = _mm256_set_pd(q[Y][i],q[Y][i],q[Y][i],q[Y][i]);
     const v4df vqiz = _mm256_set_pd(q[Z][i],q[Z][i],q[Z][i],q[Z][i]);
-
-    const v4df vpix = _mm256_set_pd(p[X][i],p[X][i],p[X][i],p[X][i]);
-    const v4df vpiy = _mm256_set_pd(p[Y][i],p[Y][i],p[Y][i],p[Y][i]);
-    const v4df vpiz = _mm256_set_pd(p[Z][i],p[Z][i],p[Z][i],p[Z][i]);
 
     for (int k=0; k<(np/4)*4; k+=4) {
       const int j_a = sorted_list[kp + k];

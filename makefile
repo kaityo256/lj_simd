@@ -1,4 +1,10 @@
-TARGET= aos.out aos_pair.out aos_intrin.out soa.out soa_pair.out soa_intrin.out aos_intrin_mat_transpose.out aos_sorted_z.out 
+AOS_BINS= aos.out aos_pair.out
+AOS_BINS +=aos_avx2.out
+
+SOA_BINS =soa.out soa_pair.out
+SOA_BINS +=soa_avx2.out
+
+TARGET = $(AOS_BINS) $(SOA_BINS)
 
 CC=g++
 CPPFLAGS=-O3 -std=c++11 -march=native
@@ -11,17 +17,14 @@ aos.out: force_aos.cpp
 aos_pair.out: force_aos.cpp
 	$(CC) $(CPPFLAGS) -DPAIR $< -o $@
 
-aos_intrin.out: force_aos.cpp
-	$(CC) $(CPPFLAGS) -DINTRIN $< -o $@
+aos_avx2.out: force_aos.cpp
+	$(CC) $(CPPFLAGS) -DAVX2 $< -o $@
 
 aos_sorted_z.out: force_aos.cpp
 	$(CC) $(CPPFLAGS) -DSORTED_Z $< -o $@
 
-aos_sorted_z_intrin.out: force_aos.cpp
-	$(CC) $(CPPFLAGS) -DSORTED_Z_INTRIN $< -o $@
-
-aos_intrin_mat_transpose.out: force_aos.cpp
-	$(CC) $(CPPFLAGS) -DMAT_TRANSPOSE $< -o $@
+aos_sorted_z_avx2.out: force_aos.cpp
+	$(CC) $(CPPFLAGS) -DSORTED_Z_AVX2 $< -o $@
 
 soa.out: force_soa.cpp
 	$(CC) $(CPPFLAGS) $< -o $@
@@ -29,20 +32,18 @@ soa.out: force_soa.cpp
 soa_pair.out: force_soa.cpp
 	$(CC) $(CPPFLAGS) -DPAIR $< -o $@
 
-soa_intrin.out: force_soa.cpp
-	$(CC) $(CPPFLAGS) -DINTRIN $< -o $@
+soa_avx2.out: force_soa.cpp
+	$(CC) $(CPPFLAGS) -DAVX2 $< -o $@
 
 clean:
 	rm -f $(TARGET)
 
-test: aos_pair.out aos_intrin.out soa_pair.out soa_intrin.out aos_intrin_mat_transpose.out
+test: $(TARGET)
 	./aos_pair.out > aos_pair.dat
-	./aos_intrin.out > aos_intrin.dat
-	./aos_intrin_mat_transpose.out > aos_intrin_mat_transpose.dat
-	diff aos_pair.dat aos_intrin.dat
-	diff aos_intrin.dat aos_intrin_mat_transpose.dat
+	./aos_avx2.out > aos_avx2.dat
+	diff aos_pair.dat aos_avx2.dat
 	./soa_pair.out > soa_pair.dat
-	./soa_intrin.out > soa_intrin.dat
-	diff soa_pair.dat soa_intrin.dat
+	./soa_avx2.out > soa_avx2.dat
+	diff soa_pair.dat soa_avx2.dat
 
 -include makefile.opt

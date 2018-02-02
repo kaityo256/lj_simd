@@ -26,11 +26,13 @@ printv(v4df r) {
   printf("%.10f %.10f %.10f %.10f\n", a[0], a[1], a[2], a[3]);
 }
 //----------------------------------------------------------------------
+int sum = 0;
 void
 measure(void(*pfunc)(), const char *name, int particle_number) {
   const auto s = std::chrono::system_clock::now();
   const int LOOP = 100;
   for (int i = 0; i < LOOP; i++) {
+    sum++;
     pfunc();
   }
   const auto e = std::chrono::system_clock::now();

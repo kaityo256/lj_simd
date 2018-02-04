@@ -3,6 +3,7 @@
 #include <random>
 #include "conf.hpp"
 //----------------------------------------------------------------------
+const int D = 3;
 double q[D][N];
 double p[D][N] = {};
 int particle_number = 0;
@@ -258,6 +259,9 @@ main(void) {
   sortpair(particle_number, number_of_pairs, number_of_partners, i_particles, j_particles, pointer, sorted_list);
 #ifdef PAIR
   measure(&force_pair, "pair", particle_number);
+  soadm.print_results(particle_number);
+#elif SORTED
+  measure(&force_sorted, "sorted", particle_number);
   soadm.print_results(particle_number);
 #elif AVX2
   measure(&force_avx2, "avx2", particle_number);

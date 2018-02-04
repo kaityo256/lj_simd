@@ -12,7 +12,6 @@ const int N = 400000;
 const int MAX_PAIRS = 30 * N;
 double L = 50.0;
 const double dt = 0.001;
-const int D = 4;
 enum {X, Y, Z, W, PX, PY, PZ, PW};
 const double CUTOFF_LENGTH = 3.0;
 const double SEARCH_LENGTH = 3.3;

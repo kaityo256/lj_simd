@@ -1,7 +1,7 @@
-AOS_BINS= aos.out aos_pair.out
+AOS_BINS= aos.out aos_pair.out 
 AOS_BINS +=aos_avx2.out
 
-SOA_BINS =soa.out soa_pair.out
+SOA_BINS =soa.out soa_pair.out soa_sorted.out
 SOA_BINS +=soa_avx2.out
 
 TARGET = $(AOS_BINS) $(SOA_BINS)
@@ -31,6 +31,9 @@ soa.out: force_soa.cpp
 
 soa_pair.out: force_soa.cpp
 	$(CC) $(CPPFLAGS) -DPAIR $< -o $@
+
+soa_sorted.out: force_soa.cpp
+	$(CC) $(CPPFLAGS) -DSORTED $< -o $@
 
 soa_avx2.out: force_soa.cpp
 	$(CC) $(CPPFLAGS) -DAVX2 $< -o $@

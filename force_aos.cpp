@@ -96,6 +96,7 @@ force_pair(void) {
 void
 force_sorted(void) {
   const int pn = particle_number;
+  const int * __restrict sorted_list2 = sorted_list;
   for (int i = 0; i < pn; i++) {
     const double qx_key = q[i][X];
     const double qy_key = q[i][Y];
@@ -106,7 +107,7 @@ force_sorted(void) {
     double pfz = 0;
     const int kp = pointer[i];
     for (int k = 0; k < np; k++) {
-      const int j = sorted_list[kp + k];
+      const int j = sorted_list2[kp + k];
       double dx = q[j][X] - qx_key;
       double dy = q[j][Y] - qy_key;
       double dz = q[j][Z] - qz_key;

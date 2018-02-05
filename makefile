@@ -4,6 +4,7 @@ AOS_BINS +=aos_avx2.out
 SOA_BINS =soa.out soa_pair.out soa_sorted.out
 SOA_BINS +=soa_avx2.out
 SOA_BINS +=soa_avx512.out
+SOA_BINS +=soa_avx512_loopopt.out
 
 TARGET = $(AOS_BINS) $(SOA_BINS)
 
@@ -44,6 +45,9 @@ soa_avx2.out: force_soa.cpp
 
 soa_avx512.out: force_soa.cpp
 	$(CC) $(CPPFLAGS) -DAVX512 $< -o $@
+
+soa_avx512_loopopt.out: force_soa.cpp
+	$(CC) $(CPPFLAGS) -DAVX512_LOOPOPT $< -o $@
 
 
 clean:

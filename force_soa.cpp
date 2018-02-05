@@ -7,11 +7,11 @@ double q[D][N];
 double p[D][N] = {};
 int particle_number = 0;
 int number_of_pairs = 0;
-int number_of_partners[N];
-int i_particles[MAX_PAIRS];
-int j_particles[MAX_PAIRS];
+int number_of_partners[N] = {};
+int i_particles[MAX_PAIRS] = {};
+int j_particles[MAX_PAIRS] = {};
 int pointer[N], pointer2[N];
-int sorted_list[MAX_PAIRS];
+int sorted_list[MAX_PAIRS] = {};
 //----------------------------------------------------------------------
 class SoADataManager : public DataManager {
 private:
@@ -336,6 +336,72 @@ force_avx512(void) {
   }
 }
 //----------------------------------------------------------------------
+// AVX-512 with loop optimization
+// c.f. https://github.com/kohnakagawa/lj_knl/blob/master/pd/force_soa.cpp
+void
+force_avx512_loopopt(void) {
+  const int pn = particle_number;
+  const int * __restrict sorted_list2 = sorted_list;
+  const v8df vc24 = _mm512_set1_pd(24.0 * dt);
+  const v8df vc48 = _mm512_set1_pd(48.0 * dt);
+  const v8df vcl2  = _mm512_set1_pd(CL2);
+  const v8df vzero = _mm512_setzero_pd();
+  const auto vpitch = _mm512_set1_epi64(8);
+  for (int i = 0; i < pn; i++) {
+    const double qx_key = q[X][i];
+    const double qy_key = q[Y][i];
+    const double qz_key = q[Z][i];
+    const v8df vqxi = _mm512_set1_pd(q[X][i]);
+    const v8df vqyi = _mm512_set1_pd(q[Y][i]);
+    const v8df vqzi = _mm512_set1_pd(q[Z][i]);
+    const int np = number_of_partners[i];
+    const auto vnp = _mm512_set1_epi64(np);
+    v8df vpxi = _mm512_setzero_pd();
+    v8df vpyi = _mm512_setzero_pd();
+    v8df vpzi = _mm512_setzero_pd();
+    auto vk_idx = _mm512_set_epi64(7LL,6LL,5LL,4LL,3LL,2LL,1LL,0LL);
+    const int kp = pointer[i];
+    const auto num_loop = ((np - 1) / 8 + 1) * 8;
+    for (int k = 0; k < num_loop; k += 8) {
+      const auto mask_loop = _mm512_cmp_epi64_mask(vk_idx,vnp, _MM_CMPINT_LT);
+      const auto vindex = _mm256_lddqu_si256((const __m256i*)(&sorted_list[kp + k]));
+      const v8df vqxj = _mm512_i32gather_pd(vindex, &(q[X][0]), 8);
+      const v8df vqyj = _mm512_i32gather_pd(vindex, &(q[Y][0]), 8);
+      const v8df vqzj = _mm512_i32gather_pd(vindex, &(q[Z][0]), 8);
+
+      v8df vpxj = _mm512_i32gather_pd(vindex, &(p[X][0]), 8);
+      v8df vpyj = _mm512_i32gather_pd(vindex, &(p[Y][0]), 8);
+      v8df vpzj = _mm512_i32gather_pd(vindex, &(p[Z][0]), 8);
+
+      const v8df vdx = vqxj - vqxi;
+      const v8df vdy = vqyj - vqyi;
+      const v8df vdz = vqzj - vqzi;
+      const v8df vr2 = vdx * vdx + vdy * vdy + vdz * vdz;
+      const v8df vr6 =  vr2 * vr2 * vr2;
+      v8df vdf = (vc24 * vr6 - vc48) / (vr6 * vr6 * vr2);
+      const auto mask_cutoff = _mm512_cmp_pd_mask(vr2, vcl2, _CMP_LE_OS);
+      const auto mask = _mm512_kand(mask_cutoff, mask_loop);
+      vdf = _mm512_mask_blend_pd(mask, vzero, vdf);
+
+      vpxj -= vdf * vdx;
+      vpyj -= vdf * vdy;
+      vpzj -= vdf * vdz;
+
+      vpxi += vdf * vdx;
+      vpyi += vdf * vdy;
+      vpzi += vdf * vdz;
+
+      _mm512_mask_i32scatter_pd(&(p[X][0]), mask_loop, vindex, vpxj, 8);
+      _mm512_mask_i32scatter_pd(&(p[Y][0]), mask_loop, vindex, vpyj, 8);
+      _mm512_mask_i32scatter_pd(&(p[Z][0]), mask_loop, vindex, vpzj, 8);
+      vk_idx = _mm512_add_epi64(vk_idx, vpitch);
+    }
+    p[X][i] += _mm512_reduce_add_pd(vpxi);
+    p[Y][i] += _mm512_reduce_add_pd(vpyi);
+    p[Z][i] += _mm512_reduce_add_pd(vpzi);
+  }
+}
+//----------------------------------------------------------------------
 int
 main(void) {
   SoADataManager soadm(p, q);
@@ -354,12 +420,16 @@ main(void) {
 #elif AVX512
   measure(&force_avx512, "avx512", particle_number);
   soadm.print_results(particle_number);
+#elif AVX512_LOOPOPT
+  measure(&force_avx512_loopopt, "avx512_loopopt", particle_number);
+  soadm.print_results(particle_number);
 #else
   measure(&force_pair, "pair", particle_number);
   measure(&force_sorted, "sorted", particle_number);
   measure(&force_swp, "sorted_swp", particle_number);
   measure(&force_avx2, "avx2", particle_number);
   measure(&force_avx512, "avx512", particle_number);
+  measure(&force_avx512_loopopt, "avx512_loopopt", particle_number);
 #endif
 }
 //----------------------------------------------------------------------

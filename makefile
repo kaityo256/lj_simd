@@ -1,5 +1,7 @@
 AOS_BINS= aos.out aos_pair.out aos_sorted.out
 AOS_BINS +=aos_avx2.out
+AOS_BINS +=aos_avx512.out
+AOS_BINS +=aos_avx512_loopopt.out
 
 SOA_BINS =soa.out soa_pair.out soa_sorted.out
 SOA_BINS +=soa_avx2.out
@@ -31,6 +33,12 @@ aos_sorted_z.out: force_aos.cpp
 aos_sorted_z_avx2.out: force_aos.cpp
 	$(CC) $(CPPFLAGS) -DSORTED_Z_AVX2 $< -o $@
 
+aos_avx512.out: force_aos.cpp
+	$(CC) $(CPPFLAGS) -DAVX512 $< -o $@
+
+aos_avx512_loopopt.out: force_aos.cpp
+	$(CC) $(CPPFLAGS) -DAVX512_LOOPOPT $< -o $@
+
 soa.out: force_soa.cpp
 	$(CC) $(CPPFLAGS) $< -o $@
 
@@ -61,9 +69,9 @@ test: $(TARGET)
 	./soa_avx2.out > soa_avx2.dat
 	diff soa_pair.dat soa_avx2.dat
 
-test2: aos_avx2.out  soa_avx512.out
+test2: aos_avx2.out  aos_avx512_loopopt.out 
 	./aos_avx2.out > aos_avx2.dat
-	./soa_avx512.out > soa_avx512.dat
-	diff aos_avx2.dat soa_avx512.dat
+	./aos_avx512_loopopt.out > aos_avx512_loopopt.dat
+	diff aos_avx2.dat aos_avx512_loopopt.dat
 
 -include makefile.opt

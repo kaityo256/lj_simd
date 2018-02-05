@@ -112,9 +112,10 @@ force_sorted(void) {
       double dy = q[j][Y] - qy_key;
       double dz = q[j][Z] - qz_key;
       double r2 = (dx * dx + dy * dy + dz * dz);
-      if (r2 > CL2) continue;
+      //if (r2 > CL2) continue;
       double r6 = r2 * r2 * r2;
       double df = ((24.0 * r6 - 48.0) / (r6 * r6 * r2)) * dt;
+      if (r2 > CL2) df=0.0;
       pfx += df * dx;
       pfy += df * dy;
       pfz += df * dz;

@@ -56,9 +56,10 @@ force_pair(void) {
     double dy = q[Y][j] - q[Y][i];
     double dz = q[Z][j] - q[Z][i];
     double r2 = (dx * dx + dy * dy + dz * dz);
-    if (r2 > CL2) continue;
+    //if (r2 > CL2) continue;
     double r6 = r2 * r2 * r2;
     double df = ((24.0 * r6 - 48.0) / (r6 * r6 * r2)) * dt;
+    if (r2 > CL2) df=0.0;
     p[X][i] += df * dx;
     p[Y][i] += df * dy;
     p[Z][i] += df * dz;

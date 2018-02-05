@@ -542,16 +542,16 @@ force_avx512_loopopt(void) {
 }
 //----------------------------------------------------------------------
 void
-transpose_4x4(v8df &v0,v8df &v1,v8df &v2,v8df &v3){
-  const auto b = _mm512_set_epi64(0,-1,0,-1,0,-1,0,-1);
-  v8df t0 = _mm512_mask_blend_pd(0xaa, v0, _mm512_permutevar_pd(v1,b));
-  v8df t1 = _mm512_mask_blend_pd(0xaa, v2, _mm512_permutevar_pd(v3,b));
-  v8df t2 = _mm512_mask_blend_pd(0x55, v1, _mm512_permutevar_pd(v0,b));
-  v8df t3 = _mm512_mask_blend_pd(0x55, v3, _mm512_permutevar_pd(v2,b));
-  v0 = _mm512_mask_blend_pd(0xcc, t0, _mm512_permutex_pd(t1, 2*1 + 3*4 + 0*16 + 1*64));
-  v1 = _mm512_mask_blend_pd(0xcc, t2, _mm512_permutex_pd(t3, 2*1 + 3*4 + 0*16 + 1*64));
-  v2 = _mm512_mask_blend_pd(0x33, t1, _mm512_permutex_pd(t0, 2*1 + 3*4 + 0*16 + 1*64));
-  v3 = _mm512_mask_blend_pd(0x33, t3, _mm512_permutex_pd(t2, 2*1 + 3*4 + 0*16 + 1*64));
+transpose_4x4(v8df &v0, v8df &v1, v8df &v2, v8df &v3) {
+  const auto b = _mm512_set_epi64(0, -1, 0, -1, 0, -1, 0, -1);
+  v8df t0 = _mm512_mask_blend_pd(0xaa, v0, _mm512_permutevar_pd(v1, b));
+  v8df t1 = _mm512_mask_blend_pd(0xaa, v2, _mm512_permutevar_pd(v3, b));
+  v8df t2 = _mm512_mask_blend_pd(0x55, v1, _mm512_permutevar_pd(v0, b));
+  v8df t3 = _mm512_mask_blend_pd(0x55, v3, _mm512_permutevar_pd(v2, b));
+  v0 = _mm512_mask_blend_pd(0xcc, t0, _mm512_permutex_pd(t1, 2 * 1 + 3 * 4 + 0 * 16 + 1 * 64));
+  v1 = _mm512_mask_blend_pd(0xcc, t2, _mm512_permutex_pd(t3, 2 * 1 + 3 * 4 + 0 * 16 + 1 * 64));
+  v2 = _mm512_mask_blend_pd(0x33, t1, _mm512_permutex_pd(t0, 2 * 1 + 3 * 4 + 0 * 16 + 1 * 64));
+  v3 = _mm512_mask_blend_pd(0x33, t3, _mm512_permutex_pd(t2, 2 * 1 + 3 * 4 + 0 * 16 + 1 * 64));
 }
 //----------------------------------------------------------------------
 void
@@ -593,18 +593,18 @@ force_avx512_transpose(void) {
       v8df vz_2 = _mm512_load_pd(&z[j_2][0]);
       v8df vz_3 = _mm512_load_pd(&z[j_3][0]);
       v8df vz_4 = _mm512_load_pd(&z[j_4][0]);
-      transpose_4x4(vz_1,vz_2,vz_3,vz_4);
+      transpose_4x4(vz_1, vz_2, vz_3, vz_4);
       v8df vz_5 = _mm512_load_pd(&z[j_5][0]);
       v8df vz_6 = _mm512_load_pd(&z[j_6][0]);
       v8df vz_7 = _mm512_load_pd(&z[j_7][0]);
       v8df vz_8 = _mm512_load_pd(&z[j_8][0]);
-      transpose_4x4(vz_5,vz_6,vz_7,vz_8);
-      v8df vqxj = _mm512_insertf64x4(vz_1, _mm512_extractf64x4_pd(vz_5,0),1);
-      v8df vqyj = _mm512_insertf64x4(vz_2, _mm512_extractf64x4_pd(vz_6,0),1);
-      v8df vqzj = _mm512_insertf64x4(vz_3, _mm512_extractf64x4_pd(vz_7,0),1);
-      v8df vpxj = _mm512_insertf64x4(vz_5, _mm512_extractf64x4_pd(vz_1,1),0);
-      v8df vpyj = _mm512_insertf64x4(vz_6, _mm512_extractf64x4_pd(vz_2,1),0);
-      v8df vpzj = _mm512_insertf64x4(vz_7, _mm512_extractf64x4_pd(vz_3,1),0);
+      transpose_4x4(vz_5, vz_6, vz_7, vz_8);
+      v8df vqxj = _mm512_insertf64x4(vz_1, _mm512_extractf64x4_pd(vz_5, 0), 1);
+      v8df vqyj = _mm512_insertf64x4(vz_2, _mm512_extractf64x4_pd(vz_6, 0), 1);
+      v8df vqzj = _mm512_insertf64x4(vz_3, _mm512_extractf64x4_pd(vz_7, 0), 1);
+      v8df vpxj = _mm512_insertf64x4(vz_5, _mm512_extractf64x4_pd(vz_1, 1), 0);
+      v8df vpyj = _mm512_insertf64x4(vz_6, _mm512_extractf64x4_pd(vz_2, 1), 0);
+      v8df vpzj = _mm512_insertf64x4(vz_7, _mm512_extractf64x4_pd(vz_3, 1), 0);
       const v8df vdx = vqxj - vqxi;
       const v8df vdy = vqyj - vqyi;
       const v8df vdz = vqzj - vqzi;

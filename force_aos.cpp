@@ -407,6 +407,9 @@ main(void) {
 #elif AVX2
   measure(&force_avx2, "avx2", particle_number);
   aosdm.print_results(particle_number);
+#elif SORTED
+  measure(&force_sorted, "sorted", particle_number);
+  aosdm.print_results(particle_number);
 #elif SORTED_Z
   copy_to_z();
   measure(&force_sorted_z, "sorted_z", particle_number);

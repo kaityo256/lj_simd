@@ -1,4 +1,4 @@
-AOS_BINS= aos.out aos_pair.out 
+AOS_BINS= aos.out aos_pair.out aos_sorted.out
 AOS_BINS +=aos_avx2.out
 
 SOA_BINS =soa.out soa_pair.out soa_sorted.out
@@ -16,6 +16,9 @@ aos.out: force_aos.cpp
 
 aos_pair.out: force_aos.cpp
 	$(CC) $(CPPFLAGS) -DPAIR $< -o $@
+
+aos_sorted.out: force_aos.cpp
+	$(CC) $(CPPFLAGS) -DSORTED $< -o $@
 
 aos_avx2.out: force_aos.cpp
 	$(CC) $(CPPFLAGS) -DAVX2 $< -o $@

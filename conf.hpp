@@ -12,7 +12,7 @@ const int N = 400000;
 const int MAX_PAIRS = 30 * N;
 double L = 50.0;
 const double dt = 0.001;
-const int D=4;
+const int D = 4;
 enum {X, Y, Z, W, PX, PY, PZ, PW};
 const double CUTOFF_LENGTH = 3.0;
 const double SEARCH_LENGTH = 3.3;
@@ -28,28 +28,28 @@ printv(v4df r) {
 }
 //----------------------------------------------------------------------
 void
-puts(int i1, int i2, int i3, int i4, int i5, int i6, int i7, int i8){
-  printf("%04d ",i1);
-  printf("%04d ",i2);
-  printf("%04d ",i3);
-  printf("%04d ",i4);
-  printf("%04d ",i5);
-  printf("%04d ",i6);
-  printf("%04d ",i7);
-  printf("%04d\n",i8);
+puts(int i1, int i2, int i3, int i4, int i5, int i6, int i7, int i8) {
+  printf("%04d ", i1);
+  printf("%04d ", i2);
+  printf("%04d ", i3);
+  printf("%04d ", i4);
+  printf("%04d ", i5);
+  printf("%04d ", i6);
+  printf("%04d ", i7);
+  printf("%04d\n", i8);
 }
 //----------------------------------------------------------------------
 void
-puts(__m256i vi){
+puts(__m256i vi) {
   int *v = (int*)(&vi);
-  for(int i=0;i<8;i++){
-    printf("%04d ",v[i]);
+  for (int i = 0; i < 8; i++) {
+    printf("%04d ", v[i]);
   }
   printf("\n");
 }
 //----------------------------------------------------------------------
 void
-puts(double d1, double d2,double d3,double d4,double d5,double d6,double d7, double d8){
+puts(double d1, double d2, double d3, double d4, double d5, double d6, double d7, double d8) {
   printf("%.10f ", d1);
   printf("%.10f ", d2);
   printf("%.10f ", d3);
@@ -61,19 +61,19 @@ puts(double d1, double d2,double d3,double d4,double d5,double d6,double d7, dou
 }
 //----------------------------------------------------------------------
 void
-puts(v8df x){
+puts(v8df x) {
   double *v = (double*)(&x);
-  for(int i=0;i<8;i++){
-    printf("%.10f ",v[i]);
+  for (int i = 0; i < 8; i++) {
+    printf("%.10f ", v[i]);
   }
   printf("\n");
 }
 //----------------------------------------------------------------------
 void
-puts(__mmask8 x){
+puts(__mmask8 x) {
   int v = x;
-  for(int i=0;i<8;i++){
-    printf("%d ",(v& (1<<i))? 1:0);
+  for (int i = 0; i < 8; i++) {
+    printf("%d ", (v & (1 << i)) ? 1 : 0);
   }
   printf("\n");
 }

@@ -59,7 +59,7 @@ force_pair(void) {
     //if (r2 > CL2) continue;
     double r6 = r2 * r2 * r2;
     double df = ((24.0 * r6 - 48.0) / (r6 * r6 * r2)) * dt;
-    if (r2 > CL2) df=0.0;
+    if (r2 > CL2) df = 0.0;
     p[X][i] += df * dx;
     p[Y][i] += df * dy;
     p[Z][i] += df * dz;
@@ -91,7 +91,7 @@ force_sorted(void) {
       //if (r2 > CL2) continue;
       double r6 = r2 * r2 * r2;
       double df = ((24.0 * r6 - 48.0) / (r6 * r6 * r2)) * dt;
-      if (r2 > CL2) df=0.0;
+      if (r2 > CL2) df = 0.0;
       pfx += df * dx;
       pfy += df * dy;
       pfz += df * dz;
@@ -279,7 +279,7 @@ force_avx512(void) {
     v8df vpyi = _mm512_setzero_pd();
     v8df vpzi = _mm512_setzero_pd();
     const int kp = pointer[i];
-    for (int k = 0; k < (np/8)*8; k+=8) {
+    for (int k = 0; k < (np / 8) * 8; k += 8) {
       const auto vindex = _mm256_lddqu_si256((const __m256i*)(&sorted_list[kp + k]));
       const v8df vqxj = _mm512_i32gather_pd(vindex, &(q[X][0]), 8);
       const v8df vqyj = _mm512_i32gather_pd(vindex, &(q[Y][0]), 8);
@@ -292,8 +292,8 @@ force_avx512(void) {
       const v8df vdx = vqxj - vqxi;
       const v8df vdy = vqyj - vqyi;
       const v8df vdz = vqzj - vqzi;
-      const v8df vr2 = vdx*vdx + vdy*vdy + vdz*vdz;
-      const v8df vr6 =  vr2*vr2*vr2;
+      const v8df vr2 = vdx * vdx + vdy * vdy + vdz * vdz;
+      const v8df vr6 =  vr2 * vr2 * vr2;
       v8df vdf = (vc24 * vr6 - vc48) / (vr6 * vr6 * vr2);
       const auto vmask = _mm512_cmp_pd_mask(vr2, vcl2, _CMP_LE_OS);
       vdf = _mm512_mask_blend_pd(vmask, vzero, vdf);
@@ -313,8 +313,8 @@ force_avx512(void) {
     pfx = _mm512_reduce_add_pd(vpxi);
     pfy = _mm512_reduce_add_pd(vpyi);
     pfz = _mm512_reduce_add_pd(vpzi);
-    
-    for (int k = (np/8)*8; k < np; k++) {
+
+    for (int k = (np / 8) * 8; k < np; k++) {
       const int j = sorted_list2[kp + k];
       double dx = q[X][j] - qx_key;
       double dy = q[Y][j] - qy_key;

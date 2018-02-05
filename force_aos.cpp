@@ -423,7 +423,7 @@ force_avx512(void) {
     const v8df vqyi = _mm512_set1_pd(z[i][Y]);
     const v8df vqzi = _mm512_set1_pd(z[i][Z]);
     const int kp = pointer[i];
-    for (int k = 0; k < (np/8)*8; k+=8) {
+    for (int k = 0; k < (np / 8) * 8; k += 8) {
       auto vindex = _mm256_lddqu_si256((const __m256i*)(&sorted_list[kp + k]));
       vindex = _mm256_slli_epi32(vindex, 3);
       const v8df vqxj = _mm512_i32gather_pd(vindex, &(z[0][X]), 8);
@@ -431,7 +431,7 @@ force_avx512(void) {
       const v8df vqzj = _mm512_i32gather_pd(vindex, &(z[0][Z]), 8);
       const v8df vdx = vqxj - vqxi;
       const v8df vdy = vqyj - vqyi;
-      const v8df vdz = vqzj - vqzi;      
+      const v8df vdz = vqzj - vqzi;
       const v8df vr2 = vdx * vdx + vdy * vdy + vdz * vdz;
       const v8df vr6 =  vr2 * vr2 * vr2;
       v8df vdf = (vc24 * vr6 - vc48) / (vr6 * vr6 * vr2);
@@ -455,8 +455,8 @@ force_avx512(void) {
     }
     pfx = _mm512_reduce_add_pd(vpxi);
     pfy = _mm512_reduce_add_pd(vpyi);
-    pfz = _mm512_reduce_add_pd(vpzi);    
-    for (int k = (np/8)*8; k < np; k++) {
+    pfz = _mm512_reduce_add_pd(vpzi);
+    for (int k = (np / 8) * 8; k < np; k++) {
       const int j = sorted_list[kp + k];
       double dx = z[j][X] - qix;
       double dy = z[j][Y] - qiy;
@@ -501,7 +501,7 @@ force_avx512_loopopt(void) {
     auto vk_idx = _mm512_set_epi64(7LL, 6LL, 5LL, 4LL, 3LL, 2LL, 1LL, 0LL);
     const int kp = pointer[i];
     const auto num_loop = ((np - 1) / 8 + 1) * 8;
-    for (int k = 0; k < num_loop; k+=8) {
+    for (int k = 0; k < num_loop; k += 8) {
       const auto mask_loop = _mm512_cmp_epi64_mask(vk_idx, vnp, _MM_CMPINT_LT);
       auto vindex = _mm256_lddqu_si256((const __m256i*)(&sorted_list[kp + k]));
       vindex = _mm256_slli_epi32(vindex, 3);
@@ -513,7 +513,7 @@ force_avx512_loopopt(void) {
       v8df vpzj = _mm512_i32gather_pd(vindex, &(z[0][PZ]), 8);
       const v8df vdx = vqxj - vqxi;
       const v8df vdy = vqyj - vqyi;
-      const v8df vdz = vqzj - vqzi;      
+      const v8df vdz = vqzj - vqzi;
       const v8df vr2 = vdx * vdx + vdy * vdy + vdz * vdz;
       const v8df vr6 =  vr2 * vr2 * vr2;
       v8df vdf = (vc24 * vr6 - vc48) / (vr6 * vr6 * vr2);

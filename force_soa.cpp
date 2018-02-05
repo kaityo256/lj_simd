@@ -357,8 +357,7 @@ force_avx512_loopopt(void) {
     v8df vpzi = _mm512_setzero_pd();
     auto vk_idx = _mm512_set_epi64(7LL, 6LL, 5LL, 4LL, 3LL, 2LL, 1LL, 0LL);
     const int kp = pointer[i];
-    const auto num_loop = ((np - 1) / 8 + 1) * 8;
-    for (int k = 0; k < num_loop; k += 8) {
+    for (int k = 0; k < np; k += 8) {
       const auto mask_loop = _mm512_cmp_epi64_mask(vk_idx, vnp, _MM_CMPINT_LT);
       const auto vindex = _mm256_lddqu_si256((const __m256i*)(&sorted_list[kp + k]));
       const v8df vqxj = _mm512_i32gather_pd(vindex, &(q[X][0]), 8);

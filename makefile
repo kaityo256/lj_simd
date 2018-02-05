@@ -78,4 +78,9 @@ test2: aos_avx2.out  aos_avx512_transpose.out
 	./aos_avx512_transpose.out > aos_avx512_transpose.dat
 	diff aos_avx2.dat aos_avx512_transpose.dat
 
+test3: aos_avx2.out  aos_avx512_loopopt.out 
+	./aos_avx2.out > aos_avx2.dat
+	./aos_avx512_loopopt.out > aos_avx512_loopopt.dat
+	diff aos_avx2.dat aos_avx512_loopopt.dat
+
 -include makefile.opt

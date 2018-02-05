@@ -341,16 +341,12 @@ force_avx512(void) {
 void
 force_avx512_loopopt(void) {
   const int pn = particle_number;
-  const int * __restrict sorted_list2 = sorted_list;
   const v8df vc24 = _mm512_set1_pd(24.0 * dt);
   const v8df vc48 = _mm512_set1_pd(48.0 * dt);
   const v8df vcl2  = _mm512_set1_pd(CL2);
   const v8df vzero = _mm512_setzero_pd();
   const auto vpitch = _mm512_set1_epi64(8);
   for (int i = 0; i < pn; i++) {
-    const double qx_key = q[X][i];
-    const double qy_key = q[Y][i];
-    const double qz_key = q[Z][i];
     const v8df vqxi = _mm512_set1_pd(q[X][i]);
     const v8df vqyi = _mm512_set1_pd(q[Y][i]);
     const v8df vqzi = _mm512_set1_pd(q[Z][i]);

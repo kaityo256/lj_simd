@@ -541,6 +541,100 @@ force_avx512_loopopt(void) {
   }
 }
 //----------------------------------------------------------------------
+void
+transpose_4x4(v8df &v0,v8df &v1,v8df &v2,v8df &v3){
+  const auto b = _mm512_set_epi64(0,-1,0,-1,0,-1,0,-1);
+  v8df t0 = _mm512_mask_blend_pd(0xaa, v0, _mm512_permutevar_pd(v1,b));
+  v8df t1 = _mm512_mask_blend_pd(0xaa, v2, _mm512_permutevar_pd(v3,b));
+  v8df t2 = _mm512_mask_blend_pd(0x55, v1, _mm512_permutevar_pd(v0,b));
+  v8df t3 = _mm512_mask_blend_pd(0x55, v3, _mm512_permutevar_pd(v2,b));
+  v0 = _mm512_mask_blend_pd(0xcc, t0, _mm512_permutex_pd(t1, 2*1 + 3*4 + 0*16 + 1*64));
+  v1 = _mm512_mask_blend_pd(0xcc, t2, _mm512_permutex_pd(t3, 2*1 + 3*4 + 0*16 + 1*64));
+  v2 = _mm512_mask_blend_pd(0x33, t1, _mm512_permutex_pd(t0, 2*1 + 3*4 + 0*16 + 1*64));
+  v3 = _mm512_mask_blend_pd(0x33, t3, _mm512_permutex_pd(t2, 2*1 + 3*4 + 0*16 + 1*64));
+}
+//----------------------------------------------------------------------
+void
+force_avx512_transpose(void) {
+  const int pn = particle_number;
+  const v8df vc24 = _mm512_set1_pd(24.0 * dt);
+  const v8df vc48 = _mm512_set1_pd(48.0 * dt);
+  const v8df vcl2  = _mm512_set1_pd(CL2);
+  const v8df vzero = _mm512_setzero_pd();
+  const auto vpitch = _mm512_set1_epi64(8);
+  for (int i = 0; i < pn; i++) {
+    const double qix = z[i][X];
+    const double qiy = z[i][Y];
+    const double qiz = z[i][Z];
+    const int np = number_of_partners[i];
+    const auto vnp = _mm512_set1_epi64(np);
+    v8df vpxi = _mm512_setzero_pd();
+    v8df vpyi = _mm512_setzero_pd();
+    v8df vpzi = _mm512_setzero_pd();
+    const v8df vqxi = _mm512_set1_pd(z[i][X]);
+    const v8df vqyi = _mm512_set1_pd(z[i][Y]);
+    const v8df vqzi = _mm512_set1_pd(z[i][Z]);
+    auto vk_idx = _mm512_set_epi64(7LL, 6LL, 5LL, 4LL, 3LL, 2LL, 1LL, 0LL);
+    const int kp = pointer[i];
+    const auto num_loop = ((np - 1) / 8 + 1) * 8;
+    for (int k = 0; k < num_loop; k += 8) {
+      const auto mask_loop = _mm512_cmp_epi64_mask(vk_idx, vnp, _MM_CMPINT_LT);
+      const int j_1 = sorted_list[kp + k];
+      const int j_2 = sorted_list[kp + k + 1];
+      const int j_3 = sorted_list[kp + k + 2];
+      const int j_4 = sorted_list[kp + k + 3];
+      const int j_5 = sorted_list[kp + k + 4];
+      const int j_6 = sorted_list[kp + k + 5];
+      const int j_7 = sorted_list[kp + k + 6];
+      const int j_8 = sorted_list[kp + k + 7];
+      auto vindex = _mm256_lddqu_si256((const __m256i*)(&sorted_list[kp + k]));
+      vindex = _mm256_slli_epi32(vindex, 3);
+      v8df vz_1 = _mm512_load_pd(&z[j_1][0]);
+      v8df vz_2 = _mm512_load_pd(&z[j_2][0]);
+      v8df vz_3 = _mm512_load_pd(&z[j_3][0]);
+      v8df vz_4 = _mm512_load_pd(&z[j_4][0]);
+      transpose_4x4(vz_1,vz_2,vz_3,vz_4);
+      v8df vz_5 = _mm512_load_pd(&z[j_5][0]);
+      v8df vz_6 = _mm512_load_pd(&z[j_6][0]);
+      v8df vz_7 = _mm512_load_pd(&z[j_7][0]);
+      v8df vz_8 = _mm512_load_pd(&z[j_8][0]);
+      transpose_4x4(vz_5,vz_6,vz_7,vz_8);
+      v8df vqxj = _mm512_insertf64x4(vz_1, _mm512_extractf64x4_pd(vz_5,0),1);
+      v8df vqyj = _mm512_insertf64x4(vz_2, _mm512_extractf64x4_pd(vz_6,0),1);
+      v8df vqzj = _mm512_insertf64x4(vz_3, _mm512_extractf64x4_pd(vz_7,0),1);
+      v8df vpxj = _mm512_insertf64x4(vz_5, _mm512_extractf64x4_pd(vz_1,1),0);
+      v8df vpyj = _mm512_insertf64x4(vz_6, _mm512_extractf64x4_pd(vz_2,1),0);
+      v8df vpzj = _mm512_insertf64x4(vz_7, _mm512_extractf64x4_pd(vz_3,1),0);
+      const v8df vdx = vqxj - vqxi;
+      const v8df vdy = vqyj - vqyi;
+      const v8df vdz = vqzj - vqzi;
+      const v8df vr2 = vdx * vdx + vdy * vdy + vdz * vdz;
+      const v8df vr6 =  vr2 * vr2 * vr2;
+      v8df vdf = (vc24 * vr6 - vc48) / (vr6 * vr6 * vr2);
+      const auto mask_cutoff = _mm512_cmp_pd_mask(vr2, vcl2, _CMP_LE_OS);
+      const auto mask = _mm512_kand(mask_cutoff, mask_loop);
+      vdf = _mm512_mask_blend_pd(mask, vzero, vdf);
+
+      vpxj -= vdf * vdx;
+      vpyj -= vdf * vdy;
+      vpzj -= vdf * vdz;
+
+      vpxi += vdf * vdx;
+      vpyi += vdf * vdy;
+      vpzi += vdf * vdz;
+
+      _mm512_mask_i32scatter_pd(&(z[0][PX]), mask_loop, vindex, vpxj, 8);
+      _mm512_mask_i32scatter_pd(&(z[0][PY]), mask_loop, vindex, vpyj, 8);
+      _mm512_mask_i32scatter_pd(&(z[0][PZ]), mask_loop, vindex, vpzj, 8);
+
+      vk_idx = _mm512_add_epi64(vk_idx, vpitch);
+    }
+    z[i][PX] += _mm512_reduce_add_pd(vpxi);
+    z[i][PY] += _mm512_reduce_add_pd(vpyi);
+    z[i][PZ] += _mm512_reduce_add_pd(vpzi);
+  }
+}
+//----------------------------------------------------------------------
 int
 main(void) {
   AoSDataManager aosdm(p, q);
@@ -576,6 +670,11 @@ main(void) {
   measure(&force_avx512_loopopt, "avx512_loopopt", particle_number);
   copy_from_z();
   aosdm.print_results(particle_number);
+#elif AVX512_TRANSPOSE
+  copy_to_z();
+  measure(&force_avx512_transpose, "avx512_transpose", particle_number);
+  copy_from_z();
+  aosdm.print_results(particle_number);
 #else
   measure(&force_pair, "pair", particle_number);
   measure(&force_sorted, "sorted", particle_number);
@@ -586,6 +685,7 @@ main(void) {
   measure(&force_sorted_z_avx2, "sorted_z_avx2", particle_number);
   measure(&force_avx512, "avx512", particle_number);
   measure(&force_avx512_loopopt, "avx512_loopopt", particle_number);
+  measure(&force_avx512_transpose, "avx512_transpose", particle_number);
 #endif
 }
 //----------------------------------------------------------------------

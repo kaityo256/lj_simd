@@ -19,11 +19,63 @@ const double SEARCH_LENGTH = 3.3;
 const double CL2 = CUTOFF_LENGTH * CUTOFF_LENGTH;
 //----------------------------------------------------------------------
 typedef double v4df __attribute__((vector_size(32)));
+typedef double v8df __attribute__((vector_size(64)));
 //----------------------------------------------------------------------
 void
 printv(v4df r) {
   double *a = (double*)(&r);
   printf("%.10f %.10f %.10f %.10f\n", a[0], a[1], a[2], a[3]);
+}
+//----------------------------------------------------------------------
+void
+puts(int i1, int i2, int i3, int i4, int i5, int i6, int i7, int i8){
+  printf("%04d ",i1);
+  printf("%04d ",i2);
+  printf("%04d ",i3);
+  printf("%04d ",i4);
+  printf("%04d ",i5);
+  printf("%04d ",i6);
+  printf("%04d ",i7);
+  printf("%04d\n",i8);
+}
+//----------------------------------------------------------------------
+void
+puts(__m256i vi){
+  int *v = (int*)(&vi);
+  for(int i=0;i<8;i++){
+    printf("%04d ",v[i]);
+  }
+  printf("\n");
+}
+//----------------------------------------------------------------------
+void
+puts(double d1, double d2,double d3,double d4,double d5,double d6,double d7, double d8){
+  printf("%.10f ", d1);
+  printf("%.10f ", d2);
+  printf("%.10f ", d3);
+  printf("%.10f ", d4);
+  printf("%.10f ", d5);
+  printf("%.10f ", d6);
+  printf("%.10f ", d7);
+  printf("%.10f\n", d8);
+}
+//----------------------------------------------------------------------
+void
+puts(v8df x){
+  double *v = (double*)(&x);
+  for(int i=0;i<8;i++){
+    printf("%.10f ",v[i]);
+  }
+  printf("\n");
+}
+//----------------------------------------------------------------------
+void
+puts(__mmask8 x){
+  int v = x;
+  for(int i=0;i<8;i++){
+    printf("%d ",(v& (1<<i))? 1:0);
+  }
+  printf("\n");
 }
 //----------------------------------------------------------------------
 // インテルコンパイラのループ交換最適化阻害のためのダミー変数

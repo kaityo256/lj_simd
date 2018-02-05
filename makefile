@@ -3,6 +3,7 @@ AOS_BINS +=aos_avx2.out
 
 SOA_BINS =soa.out soa_pair.out soa_sorted.out
 SOA_BINS +=soa_avx2.out
+SOA_BINS +=soa_avx512.out
 
 TARGET = $(AOS_BINS) $(SOA_BINS)
 
@@ -41,6 +42,10 @@ soa_sorted.out: force_soa.cpp
 soa_avx2.out: force_soa.cpp
 	$(CC) $(CPPFLAGS) -DAVX2 $< -o $@
 
+soa_avx512.out: force_soa.cpp
+	$(CC) $(CPPFLAGS) -DAVX512 $< -o $@
+
+
 clean:
 	rm -f $(TARGET)
 
@@ -51,5 +56,10 @@ test: $(TARGET)
 	./soa_pair.out > soa_pair.dat
 	./soa_avx2.out > soa_avx2.dat
 	diff soa_pair.dat soa_avx2.dat
+
+test2: aos_avx2.out  soa_avx512.out
+	./aos_avx2.out > aos_avx2.dat
+	./soa_avx512.out > soa_avx512.dat
+	diff aos_avx2.dat soa_avx512.dat
 
 -include makefile.opt

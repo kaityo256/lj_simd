@@ -253,6 +253,89 @@ force_swp(void) {
   }
 }
 //----------------------------------------------------------------------
+#define putsarray(x) puts(x[j##_1],x[j##_2],x[j##_3],x[j##_4],x[j##_5],x[j##_6],x[j##_7],x[j##_8]);
+#define putsval(x) puts(x##_1,x##_2,x##_3,x##_4,x##_5,x##_6,x##_7,x##_8);
+//----------------------------------------------------------------------
+void
+force_avx512(void) {
+  const int pn = particle_number;
+  const int * __restrict sorted_list2 = sorted_list;
+  const v8df vc24 = _mm512_set1_pd(24.0 * dt);
+  const v8df vc48 = _mm512_set1_pd(48.0 * dt);
+  const v8df vcl2  = _mm512_set1_pd(CL2);
+  const v8df vzero = _mm512_setzero_pd();
+  for (int i = 0; i < pn; i++) {
+    const double qx_key = q[X][i];
+    const double qy_key = q[Y][i];
+    const double qz_key = q[Z][i];
+    const v8df vqxi = _mm512_set1_pd(q[X][i]);
+    const v8df vqyi = _mm512_set1_pd(q[Y][i]);
+    const v8df vqzi = _mm512_set1_pd(q[Z][i]);
+    const int np = number_of_partners[i];
+    double pfx = 0;
+    double pfy = 0;
+    double pfz = 0;
+    v8df vpxi = _mm512_setzero_pd();
+    v8df vpyi = _mm512_setzero_pd();
+    v8df vpzi = _mm512_setzero_pd();
+    const int kp = pointer[i];
+    for (int k = 0; k < (np/8)*8; k+=8) {
+      const auto vindex = _mm256_lddqu_si256((const __m256i*)(&sorted_list[kp + k]));
+      const v8df vqxj = _mm512_i32gather_pd(vindex, &(q[X][0]), 8);
+      const v8df vqyj = _mm512_i32gather_pd(vindex, &(q[Y][0]), 8);
+      const v8df vqzj = _mm512_i32gather_pd(vindex, &(q[Z][0]), 8);
+
+      v8df vpxj = _mm512_i32gather_pd(vindex, &(p[X][0]), 8);
+      v8df vpyj = _mm512_i32gather_pd(vindex, &(p[Y][0]), 8);
+      v8df vpzj = _mm512_i32gather_pd(vindex, &(p[Z][0]), 8);
+
+      const v8df vdx = vqxj - vqxi;
+      const v8df vdy = vqyj - vqyi;
+      const v8df vdz = vqzj - vqzi;
+      const v8df vr2 = vdx*vdx + vdy*vdy + vdz*vdz;
+      const v8df vr6 =  vr2*vr2*vr2;
+      v8df vdf = (vc24 * vr6 - vc48) / (vr6 * vr6 * vr2);
+      const auto vmask = _mm512_cmp_pd_mask(vr2, vcl2, _CMP_LE_OS);
+      vdf = _mm512_mask_blend_pd(vmask, vzero, vdf);
+
+      vpxj -= vdf * vdx;
+      vpyj -= vdf * vdy;
+      vpzj -= vdf * vdz;
+
+      vpxi += vdf * vdx;
+      vpyi += vdf * vdy;
+      vpzi += vdf * vdz;
+
+      _mm512_i32scatter_pd(&(p[X][0]), vindex, vpxj, 8);
+      _mm512_i32scatter_pd(&(p[Y][0]), vindex, vpyj, 8);
+      _mm512_i32scatter_pd(&(p[Z][0]), vindex, vpzj, 8);
+    }
+    pfx = _mm512_reduce_add_pd(vpxi);
+    pfy = _mm512_reduce_add_pd(vpyi);
+    pfz = _mm512_reduce_add_pd(vpzi);
+    
+    for (int k = (np/8)*8; k < np; k++) {
+      const int j = sorted_list2[kp + k];
+      double dx = q[X][j] - qx_key;
+      double dy = q[Y][j] - qy_key;
+      double dz = q[Z][j] - qz_key;
+      double r2 = (dx * dx + dy * dy + dz * dz);
+      if (r2 > CL2) continue;
+      double r6 = r2 * r2 * r2;
+      double df = ((24.0 * r6 - 48.0) / (r6 * r6 * r2)) * dt;
+      pfx += df * dx;
+      pfy += df * dy;
+      pfz += df * dz;
+      p[X][j] -= df * dx;
+      p[Y][j] -= df * dy;
+      p[Z][j] -= df * dz;
+    }
+    p[X][i] += pfx;
+    p[Y][i] += pfy;
+    p[Z][i] += pfz;
+  }
+}
+//----------------------------------------------------------------------
 int
 main(void) {
   SoADataManager soadm(p, q);
@@ -268,11 +351,15 @@ main(void) {
 #elif AVX2
   measure(&force_avx2, "avx2", particle_number);
   soadm.print_results(particle_number);
+#elif AVX512
+  measure(&force_avx512, "avx512", particle_number);
+  soadm.print_results(particle_number);
 #else
   measure(&force_pair, "pair", particle_number);
   measure(&force_sorted, "sorted", particle_number);
   measure(&force_swp, "sorted_swp", particle_number);
   measure(&force_avx2, "avx2", particle_number);
+  measure(&force_avx512, "avx512", particle_number);
 #endif
 }
 //----------------------------------------------------------------------

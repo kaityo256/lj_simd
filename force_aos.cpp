@@ -583,7 +583,6 @@ force_avx512_loopopt_swp(void) {
     vdf = _mm512_mask_blend_pd(mask, vzero, vdf);
     v8df vpxj, vpyj, vpzj;
     for (k = 8; k < np; k += 8) {
-      // 先送り場所
       vk_idx = _mm512_add_epi64(vk_idx, vpitch);
       auto mask_loop_b = _mm512_cmp_epi64_mask(vk_idx, vnp, _MM_CMPINT_LT);
       auto vindex_b = _mm256_lddqu_si256((const __m256i*)(&sorted_list[kp + k]));
@@ -598,7 +597,6 @@ force_avx512_loopopt_swp(void) {
       vr6 =  vr2 * vr2 * vr2;
       mask_cutoff = _mm512_cmp_pd_mask(vr2, vcl2, _CMP_LE_OS);
       mask = _mm512_kand(mask_cutoff, mask_loop_b);
-      //
 
       vpxj = _mm512_i32gather_pd(vindex, &(z[0][PX]), 8);
       vpyj = _mm512_i32gather_pd(vindex, &(z[0][PY]), 8);
@@ -608,9 +606,6 @@ force_avx512_loopopt_swp(void) {
       vpxj -= vdf * vdx;
       vpyj -= vdf * vdy;
       vpzj -= vdf * vdz;
-      //混ぜる
-
-      //
       vpxi += vdf * vdx;
       vpyi += vdf * vdy;
       vpzi += vdf * vdz;
@@ -897,6 +892,7 @@ main(void) {
   measure(&force_sorted_z_avx2, "sorted_z_avx2", particle_number);
   measure(&force_avx512, "avx512", particle_number);
   measure(&force_avx512_loopopt, "avx512_loopopt", particle_number);
+  measure(&force_avx512_loopopt_swp, "avx512_loopopt_swp", particle_number);
   measure(&force_avx512_transpose, "avx512_transpose", particle_number);
 #endif
 }

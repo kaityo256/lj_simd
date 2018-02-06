@@ -61,6 +61,15 @@ puts(double d1, double d2, double d3, double d4, double d5, double d6, double d7
 }
 //----------------------------------------------------------------------
 void
+puts4(v4df x) {
+  double *v = (double*)(&x);
+  for (int i = 0; i < 4; i++) {
+    printf("%.10f ", v[i]);
+  }
+  printf("\n");
+}
+//----------------------------------------------------------------------
+void
 puts(v8df x) {
   double *v = (double*)(&x);
   for (int i = 0; i < 8; i++) {
@@ -76,6 +85,19 @@ puts(__mmask8 x) {
     printf("%d ", (v & (1 << i)) ? 1 : 0);
   }
   printf("\n");
+}
+//----------------------------------------------------------------------
+void
+transpose_4x4(v8df &v0, v8df &v1, v8df &v2, v8df &v3) {
+  const auto b = _mm512_set_epi64(0, -1, 0, -1, 0, -1, 0, -1);
+  v8df t0 = _mm512_mask_blend_pd(0xaa, v0, _mm512_permutevar_pd(v1, b));
+  v8df t1 = _mm512_mask_blend_pd(0xaa, v2, _mm512_permutevar_pd(v3, b));
+  v8df t2 = _mm512_mask_blend_pd(0x55, v1, _mm512_permutevar_pd(v0, b));
+  v8df t3 = _mm512_mask_blend_pd(0x55, v3, _mm512_permutevar_pd(v2, b));
+  v0 = _mm512_mask_blend_pd(0xcc, t0, _mm512_permutex_pd(t1, 2 * 1 + 3 * 4 + 0 * 16 + 1 * 64));
+  v1 = _mm512_mask_blend_pd(0xcc, t2, _mm512_permutex_pd(t3, 2 * 1 + 3 * 4 + 0 * 16 + 1 * 64));
+  v2 = _mm512_mask_blend_pd(0x33, t1, _mm512_permutex_pd(t0, 2 * 1 + 3 * 4 + 0 * 16 + 1 * 64));
+  v3 = _mm512_mask_blend_pd(0x33, t3, _mm512_permutex_pd(t2, 2 * 1 + 3 * 4 + 0 * 16 + 1 * 64));
 }
 //----------------------------------------------------------------------
 // インテルコンパイラのループ交換最適化阻害のためのダミー変数

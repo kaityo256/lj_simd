@@ -490,9 +490,6 @@ force_avx512_loopopt(void) {
   const v8df vzero = _mm512_setzero_pd();
   const auto vpitch = _mm512_set1_epi64(8);
   for (int i = 0; i < pn; i++) {
-    const double qix = z[i][X];
-    const double qiy = z[i][Y];
-    const double qiz = z[i][Z];
     const int np = number_of_partners[i];
     const auto vnp = _mm512_set1_epi64(np);
     v8df vpxi = _mm512_setzero_pd();
@@ -552,9 +549,6 @@ force_avx512_loopopt_swp(void) {
   const v8df vzero = _mm512_setzero_pd();
   const auto vpitch = _mm512_set1_epi64(8);
   for (int i = 0; i < pn; i++) {
-    const double qix = z[i][X];
-    const double qiy = z[i][Y];
-    const double qiz = z[i][Z];
     const int np = number_of_partners[i];
     const auto vnp = _mm512_set1_epi64(np);
     v8df vpxi = _mm512_setzero_pd();
@@ -652,9 +646,6 @@ force_avx512_gatheronly(void) {
   const v8df vzero = _mm512_setzero_pd();
   const auto vpitch = _mm512_set1_epi64(8);
   for (int i = 0; i < pn; i++) {
-    const double qix = z[i][X];
-    const double qiy = z[i][Y];
-    const double qiz = z[i][Z];
     const int np = number_of_partners[i];
     const auto vnp = _mm512_set1_epi64(np);
     v8df vpxi = _mm512_setzero_pd();
@@ -761,9 +752,6 @@ force_avx512_transpose(void) {
   const v8df vzero = _mm512_setzero_pd();
   const auto vpitch = _mm512_set1_epi64(8);
   for (int i = 0; i < pn; i++) {
-    const double qix = z[i][X];
-    const double qiy = z[i][Y];
-    const double qiz = z[i][Z];
     const int np = number_of_partners[i];
     const auto vnp = _mm512_set1_epi64(np);
     v8df vpxi = _mm512_setzero_pd();

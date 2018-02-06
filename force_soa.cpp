@@ -510,7 +510,7 @@ main(void) {
 #elif AVX2
   measure(&force_avx2, "avx2", particle_number);
   soadm.print_results(particle_number);
-#elif AVX512
+#elif AVX512_SIMPLE
   measure(&force_avx512, "avx512", particle_number);
   soadm.print_results(particle_number);
 #elif AVX512_LOOPOPT
@@ -524,9 +524,11 @@ main(void) {
   measure(&force_sorted, "sorted", particle_number);
   measure(&force_swp, "sorted_swp", particle_number);
   measure(&force_avx2, "avx2", particle_number);
+#ifdef AVX512
   measure(&force_avx512, "avx512", particle_number);
   measure(&force_avx512_loopopt, "avx512_loopopt", particle_number);
   measure(&force_avx512_loopopt_swp, "avx512_loopopt_swp", particle_number);
+#endif //AVX512
 #endif
 }
 //----------------------------------------------------------------------

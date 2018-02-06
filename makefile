@@ -1,16 +1,26 @@
+AVX512=1
+
+ifdef AVX512
+DAVX512=-DAVX512
+endif
+
 AOS_BINS= aos.out aos_pair.out aos_sorted.out
 AOS_BINS +=aos_avx2.out
+ifdef AVX512
 AOS_BINS +=aos_avx512.out
 AOS_BINS +=aos_avx512_loopopt.out
 AOS_BINS +=aos_avx512_loopopt_swp.out
 AOS_BINS +=aos_avx512_gatheronly.out
 AOS_BINS +=aos_avx512_transpose.out
+endif
 
 SOA_BINS =soa.out soa_pair.out soa_sorted.out
 SOA_BINS +=soa_avx2.out
+ifdef AVX512
 SOA_BINS +=soa_avx512.out
 SOA_BINS +=soa_avx512_loopopt.out
 SOA_BINS +=soa_avx512_loopopt_swp.out
+endif
 
 TARGET = $(AOS_BINS) $(SOA_BINS)
 
@@ -20,7 +30,7 @@ CPPFLAGS=-O3 -std=c++11 -march=native
 all: $(TARGET)
 
 aos.out: force_aos.cpp
-	$(CC) $(CPPFLAGS) $< -o $@
+	$(CC) $(CPPFLAGS) $(DAVX512) $< -o $@
 
 aos_pair.out: force_aos.cpp
 	$(CC) $(CPPFLAGS) -DPAIR $< -o $@
@@ -38,22 +48,22 @@ aos_sorted_z_avx2.out: force_aos.cpp
 	$(CC) $(CPPFLAGS) -DSORTED_Z_AVX2 $< -o $@
 
 aos_avx512.out: force_aos.cpp
-	$(CC) $(CPPFLAGS) -DAVX512 $< -o $@
+	$(CC) $(CPPFLAGS) -DAVX512 -DAVX512_SIMPLE $< -o $@
 
 aos_avx512_loopopt.out: force_aos.cpp
-	$(CC) $(CPPFLAGS) -DAVX512_LOOPOPT $< -o $@
+	$(CC) $(CPPFLAGS) -DAVX512 -DAVX512_LOOPOPT $< -o $@
 
 aos_avx512_loopopt_swp.out: force_aos.cpp
-	$(CC) $(CPPFLAGS) -DAVX512_LOOPOPT_SWP $< -o $@
+	$(CC) $(CPPFLAGS) -DAVX512 -DAVX512_LOOPOPT_SWP $< -o $@
 
 aos_avx512_gatheronly.out: force_aos.cpp
-	$(CC) $(CPPFLAGS) -DAVX512_GATHERONLY $< -o $@
+	$(CC) $(CPPFLAGS) -DAVX512 -DAVX512_GATHERONLY $< -o $@
 
 aos_avx512_transpose.out: force_aos.cpp
-	$(CC) $(CPPFLAGS) -DAVX512_TRANSPOSE $< -o $@
+	$(CC) $(CPPFLAGS) -DAVX512 -DAVX512_TRANSPOSE $< -o $@
 
 soa.out: force_soa.cpp
-	$(CC) $(CPPFLAGS) $< -o $@
+	$(CC) $(CPPFLAGS) $(DAVX512) $< -o $@
 
 soa_pair.out: force_soa.cpp
 	$(CC) $(CPPFLAGS) -DPAIR $< -o $@
@@ -65,13 +75,13 @@ soa_avx2.out: force_soa.cpp
 	$(CC) $(CPPFLAGS) -DAVX2 $< -o $@
 
 soa_avx512.out: force_soa.cpp
-	$(CC) $(CPPFLAGS) -DAVX512 $< -o $@
+	$(CC) $(CPPFLAGS) -DAVX512 -DAVX512_SIMPLE $< -o $@
 
 soa_avx512_loopopt.out: force_soa.cpp
-	$(CC) $(CPPFLAGS) -DAVX512_LOOPOPT $< -o $@
+	$(CC) $(CPPFLAGS) -DAVX512 -DAVX512_LOOPOPT $< -o $@
 
 soa_avx512_loopopt_swp.out: force_soa.cpp
-	$(CC) $(CPPFLAGS) -DAVX512_LOOPOPT_SWP $< -o $@
+	$(CC) $(CPPFLAGS) -DAVX512 -DAVX512_LOOPOPT_SWP $< -o $@
 
 
 clean:

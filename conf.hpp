@@ -87,6 +87,7 @@ puts(__mmask8 x) {
   printf("\n");
 }
 //----------------------------------------------------------------------
+#ifdef AVX512
 void
 transpose_4x4(v8df &v0, v8df &v1, v8df &v2, v8df &v3) {
   const auto b = _mm512_set_epi64(0, -1, 0, -1, 0, -1, 0, -1);
@@ -99,6 +100,7 @@ transpose_4x4(v8df &v0, v8df &v1, v8df &v2, v8df &v3) {
   v2 = _mm512_mask_blend_pd(0x33, t1, _mm512_permutex_pd(t0, 2 * 1 + 3 * 4 + 0 * 16 + 1 * 64));
   v3 = _mm512_mask_blend_pd(0x33, t3, _mm512_permutex_pd(t2, 2 * 1 + 3 * 4 + 0 * 16 + 1 * 64));
 }
+#endif //AVX512
 //----------------------------------------------------------------------
 // インテルコンパイラのループ交換最適化阻害のためのダミー変数
 int sum = 0;
@@ -166,12 +168,6 @@ makepair(int particle_number, int &number_of_pairs, int number_of_partners[N], i
   }
   for (int i = 0; i < particle_number - 1; i++) {
     for (int j = i + 1; j < particle_number; j++) {
-      /*
-      const double dx = q[i][X] - q[j][X];
-      const double dy = q[i][Y] - q[j][Y];
-      const double dz = q[i][Z] - q[j][Z];
-      const double r2 = dx * dx + dy * dy + dz * dz;
-      */
       const double r2 = dm->calc_distance(i, j);
       if (r2 < SL2) {
         register_pair(i, j, number_of_pairs, number_of_partners, i_particles, j_particles);
@@ -189,7 +185,6 @@ check_pairlist(int particle_number, int &number_of_pairs, int number_of_partners
     loadpair(number_of_pairs, number_of_partners, i_particles, j_particles);
   } else {
     std::cerr << "Make pairlist." << std::endl;
-    //makepair();
     makepair(particle_number, number_of_pairs, number_of_partners, i_particles, j_particles, dm);
     savepair(number_of_pairs, number_of_partners, i_particles, j_particles);
   }

@@ -400,6 +400,7 @@ force_sorted_z_avx2(void) {
 //------------------------------------------------------------------------
 // c.f. https://github.com/kohnakagawa/lj_knl
 //------------------------------------------------------------------------
+#ifdef AVX512
 void
 force_avx512(void) {
   const int pn = particle_number;
@@ -819,6 +820,7 @@ force_avx512_transpose(void) {
   }
 }
 //----------------------------------------------------------------------
+#endif //AVX512
 int
 main(void) {
   AoSDataManager aosdm(p, q);
@@ -844,7 +846,7 @@ main(void) {
   measure(&force_sorted_z_avx2, "sorted_z_avx2", particle_number);
   copy_from_z();
   aosdm.print_results(particle_number);
-#elif AVX512
+#elif AVX512_SIMPLE
   copy_to_z();
   measure(&force_avx512, "avx512", particle_number);
   copy_from_z();
@@ -877,10 +879,12 @@ main(void) {
   copy_to_z();
   measure(&force_sorted_z, "sorted_z", particle_number);
   measure(&force_sorted_z_avx2, "sorted_z_avx2", particle_number);
+#ifdef AVX512
   measure(&force_avx512, "avx512", particle_number);
   measure(&force_avx512_loopopt, "avx512_loopopt", particle_number);
   measure(&force_avx512_loopopt_swp, "avx512_loopopt_swp", particle_number);
   measure(&force_avx512_transpose, "avx512_transpose", particle_number);
+#endif //AVX512
 #endif
 }
 //----------------------------------------------------------------------

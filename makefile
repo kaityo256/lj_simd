@@ -9,6 +9,7 @@ endif
 
 AOS_BINS= aos.out aos_pair.out aos_sorted.out
 AOS_BINS +=aos_avx2.out
+AOS_BINS +=aos_avx2_swp.out
 ifdef AVX512
 AOS_BINS +=aos_avx512.out
 AOS_BINS +=aos_avx512_loopopt.out
@@ -41,6 +42,9 @@ aos_sorted.out: force_aos.cpp
 
 aos_avx2.out: force_aos.cpp
 	$(CC) $(CPPFLAGS) -DAVX2 $< -o $@
+
+aos_avx2_swp.out: force_aos.cpp
+	$(CC) $(CPPFLAGS) -DAVX2_SWP $< -o $@
 
 aos_sorted_z.out: force_aos.cpp
 	$(CC) $(CPPFLAGS) -DSORTED_Z $< -o $@
@@ -97,7 +101,7 @@ test: $(TARGET)
 	diff soa_pair.dat soa_avx2.dat
 
 REF=aos_avx2.out
-SUB=soa_avx2.out
+SUB=aos_avx2_swp.out
 
 test2: $(REF) $(SUB)
 	./$(REF) > orig.dat

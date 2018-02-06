@@ -712,7 +712,7 @@ force_avx512_gatheronly(void) {
       v8df t2 = vpyj;
       v8df t3 = vpzj;
       v8df t4 = _mm512_setzero_pd();
-      transpose_4x4(t1,t2,t3,t4);
+      transpose_4x4(t1, t2, t3, t4);
       v4df pj_1 = _mm512_extractf64x4_pd(t1, 0);
       v4df pj_2 = _mm512_extractf64x4_pd(t2, 0);
       v4df pj_3 = _mm512_extractf64x4_pd(t3, 0);
@@ -721,32 +721,32 @@ force_avx512_gatheronly(void) {
       v4df pj_6 = _mm512_extractf64x4_pd(t2, 1);
       v4df pj_7 = _mm512_extractf64x4_pd(t3, 1);
       v4df pj_8 = _mm512_extractf64x4_pd(t4, 1);
-/*
-      __mmask8 k1 = (k<np)? 255: 0;
-      __mmask8 k2 = (k+1<np)? 255: 0;
-      __mmask8 k3 = (k+2<np)? 255: 0;
-      __mmask8 k4 = (k+3<np)? 255: 0;
-      __mmask8 k5 = (k+4<np)? 255: 0;
-      __mmask8 k6 = (k+5<np)? 255: 0;
-      __mmask8 k7 = (k+6<np)? 255: 0;
-      __mmask8 k8 = (k+7<np)? 255: 0;
-      _mm256_mask_store_pd(&(z[j_1][PX]), k1, pj_1);
-      _mm256_mask_store_pd(&(z[j_2][PX]), k2, pj_2);
-      _mm256_mask_store_pd(&(z[j_3][PX]), k3, pj_3);
-      _mm256_mask_store_pd(&(z[j_4][PX]), k4, pj_4);
-      _mm256_mask_store_pd(&(z[j_5][PX]), k5, pj_5);
-      _mm256_mask_store_pd(&(z[j_6][PX]), k6, pj_6);
-      _mm256_mask_store_pd(&(z[j_7][PX]), k7, pj_7);
-      _mm256_mask_store_pd(&(z[j_8][PX]), k8, pj_8);
-*/
-      if(k  <np)_mm256_store_pd(&(z[j_1][PX]), pj_1);
-      if(k+1<np)_mm256_store_pd(&(z[j_2][PX]), pj_2);
-      if(k+2<np)_mm256_store_pd(&(z[j_3][PX]), pj_3);
-      if(k+3<np)_mm256_store_pd(&(z[j_4][PX]), pj_4);
-      if(k+4<np)_mm256_store_pd(&(z[j_5][PX]), pj_5);
-      if(k+5<np)_mm256_store_pd(&(z[j_6][PX]), pj_6);
-      if(k+6<np)_mm256_store_pd(&(z[j_7][PX]), pj_7);
-      if(k+7<np)_mm256_store_pd(&(z[j_8][PX]), pj_8);
+      /*
+            __mmask8 k1 = (k<np)? 255: 0;
+            __mmask8 k2 = (k+1<np)? 255: 0;
+            __mmask8 k3 = (k+2<np)? 255: 0;
+            __mmask8 k4 = (k+3<np)? 255: 0;
+            __mmask8 k5 = (k+4<np)? 255: 0;
+            __mmask8 k6 = (k+5<np)? 255: 0;
+            __mmask8 k7 = (k+6<np)? 255: 0;
+            __mmask8 k8 = (k+7<np)? 255: 0;
+            _mm256_mask_store_pd(&(z[j_1][PX]), k1, pj_1);
+            _mm256_mask_store_pd(&(z[j_2][PX]), k2, pj_2);
+            _mm256_mask_store_pd(&(z[j_3][PX]), k3, pj_3);
+            _mm256_mask_store_pd(&(z[j_4][PX]), k4, pj_4);
+            _mm256_mask_store_pd(&(z[j_5][PX]), k5, pj_5);
+            _mm256_mask_store_pd(&(z[j_6][PX]), k6, pj_6);
+            _mm256_mask_store_pd(&(z[j_7][PX]), k7, pj_7);
+            _mm256_mask_store_pd(&(z[j_8][PX]), k8, pj_8);
+      */
+      if (k  < np)_mm256_store_pd(&(z[j_1][PX]), pj_1);
+      if (k + 1 < np)_mm256_store_pd(&(z[j_2][PX]), pj_2);
+      if (k + 2 < np)_mm256_store_pd(&(z[j_3][PX]), pj_3);
+      if (k + 3 < np)_mm256_store_pd(&(z[j_4][PX]), pj_4);
+      if (k + 4 < np)_mm256_store_pd(&(z[j_5][PX]), pj_5);
+      if (k + 5 < np)_mm256_store_pd(&(z[j_6][PX]), pj_6);
+      if (k + 6 < np)_mm256_store_pd(&(z[j_7][PX]), pj_7);
+      if (k + 7 < np)_mm256_store_pd(&(z[j_8][PX]), pj_8);
 
       vk_idx = _mm512_add_epi64(vk_idx, vpitch);
     }

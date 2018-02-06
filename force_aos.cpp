@@ -6,7 +6,6 @@
 double q[N][D];
 double p[N][D] = {};
 __attribute__((aligned(64))) double z[N][8];
-const double *zp = &(z[0][0]);
 int particle_number = 0;
 int number_of_pairs = 0;
 int number_of_partners[N];
@@ -98,9 +97,9 @@ force_sorted(void) {
   const int pn = particle_number;
   const int * __restrict sorted_list2 = sorted_list;
   for (int i = 0; i < pn; i++) {
-    const double qx_key = q[i][X];
-    const double qy_key = q[i][Y];
-    const double qz_key = q[i][Z];
+    const double qix = q[i][X];
+    const double qiy = q[i][Y];
+    const double qiz = q[i][Z];
     const int np = number_of_partners[i];
     double pfx = 0;
     double pfy = 0;
@@ -108,9 +107,9 @@ force_sorted(void) {
     const int kp = pointer[i];
     for (int k = 0; k < np; k++) {
       const int j = sorted_list2[kp + k];
-      double dx = q[j][X] - qx_key;
-      double dy = q[j][Y] - qy_key;
-      double dz = q[j][Z] - qz_key;
+      double dx = q[j][X] - qix;
+      double dy = q[j][Y] - qiy;
+      double dz = q[j][Z] - qiz;
       double r2 = (dx * dx + dy * dy + dz * dz);
       //if (r2 > CL2) continue;
       double r6 = r2 * r2 * r2;
@@ -168,17 +167,17 @@ void
 force_swp(void) {
   const int pn = particle_number;
   for (int i = 0; i < pn; i++) {
-    const double qx_key = q[i][X];
-    const double qy_key = q[i][Y];
-    const double qz_key = q[i][Z];
+    const double qix = q[i][X];
+    const double qiy = q[i][Y];
+    const double qiz = q[i][Z];
     double pfx = 0;
     double pfy = 0;
     double pfz = 0;
     const int kp = pointer[i];
     int ja = sorted_list[kp];
-    double dxa = q[ja][X] - qx_key;
-    double dya = q[ja][Y] - qy_key;
-    double dza = q[ja][Z] - qz_key;
+    double dxa = q[ja][X] - qix;
+    double dya = q[ja][Y] - qiy;
+    double dza = q[ja][Z] - qiz;
     double df = 0.0;
     double dxb = 0.0, dyb = 0.0, dzb = 0.0;
     int jb = 0;
@@ -192,9 +191,9 @@ force_swp(void) {
       double r2 = (dx * dx + dy * dy + dz * dz);
       const int j = ja;
       ja = sorted_list[k + 1];
-      dxa = q[ja][X] - qx_key;
-      dya = q[ja][Y] - qy_key;
-      dza = q[ja][Z] - qz_key;
+      dxa = q[ja][X] - qix;
+      dya = q[ja][Y] - qiy;
+      dza = q[ja][Z] - qiz;
       if (r2 > CL2)continue;
       pfx += df * dxb;
       pfy += df * dyb;
@@ -316,24 +315,24 @@ force_sorted_z_avx2(void) {
   const int pn = particle_number;
   for (int i = 0; i < pn; i++) {
     const v4df vqi = _mm256_load_pd((double*)(z + i));
-    v4df vpi = _mm256_load_pd((double*)(zp + i * 8 + 4));
+    v4df vpi = _mm256_load_pd((double*)(&z[i][PX]));
     const int np = number_of_partners[i];
     const int kp = pointer[i];
     for (int k = 0; k < (np / 4) * 4; k += 4) {
       const int j_a = sorted_list[kp + k];
-      v4df vqj_a = _mm256_load_pd((double*)(z + j_a));
+      v4df vqj_a = _mm256_load_pd((double*)(&z[j_a][X]));
       v4df vdq_a = (vqj_a - vqi);
 
       const int j_b = sorted_list[kp + k + 1];
-      v4df vqj_b = _mm256_load_pd((double*)(z + j_b));
+      v4df vqj_b = _mm256_load_pd((double*)(&z[j_b][X]));
       v4df vdq_b = (vqj_b - vqi);
 
       const int j_c = sorted_list[kp + k + 2];
-      v4df vqj_c = _mm256_load_pd((double*)(z + j_c));
+      v4df vqj_c = _mm256_load_pd((double*)(&z[j_c][X]));
       v4df vdq_c = (vqj_c - vqi);
 
       const int j_d = sorted_list[kp + k + 3];
-      v4df vqj_d = _mm256_load_pd((double*)(z + j_d));
+      v4df vqj_d = _mm256_load_pd((double*)(&z[j_d][X]));
       v4df vdq_d = (vqj_d - vqi);
 
       v4df tmp0 = _mm256_unpacklo_pd(vdq_a, vdq_b);
@@ -356,27 +355,27 @@ force_sorted_z_avx2(void) {
       v4df vdf_c = _mm256_permute4x64_pd(vdf, 170);
       v4df vdf_d = _mm256_permute4x64_pd(vdf, 255);
 
-      v4df vpj_a = _mm256_load_pd((double*)(zp + j_a * 8 + 4));
+      v4df vpj_a = _mm256_load_pd((double*)(&z[j_a][PX]));
       vpi += vdq_a * vdf_a;
       vpj_a -= vdq_a * vdf_a;
-      _mm256_store_pd((double*)(zp + j_a * 8 + 4), vpj_a);
+      _mm256_store_pd((double*)(&z[j_a][PX]), vpj_a);
 
-      v4df vpj_b = _mm256_load_pd((double*)(zp + j_b * 8 + 4));
+      v4df vpj_b = _mm256_load_pd((double*)(&z[j_b][PX]));
       vpi += vdq_b * vdf_b;
       vpj_b -= vdq_b * vdf_b;
-      _mm256_store_pd((double*)(zp + j_b * 8 + 4), vpj_b);
+      _mm256_store_pd((double*)(&z[j_b][PX]), vpj_b);
 
-      v4df vpj_c = _mm256_load_pd((double*)(zp + j_c * 8 + 4));
+      v4df vpj_c = _mm256_load_pd((double*)(&z[j_c][PX]));
       vpi += vdq_c * vdf_c;
       vpj_c -= vdq_c * vdf_c;
-      _mm256_store_pd((double*)(zp + j_c * 8 + 4), vpj_c);
+      _mm256_store_pd((double*)(&z[j_c][PX]), vpj_c);
 
-      v4df vpj_d = _mm256_load_pd((double*)(zp + j_d * 8 + 4));
+      v4df vpj_d = _mm256_load_pd((double*)(&z[j_d][PX]));
       vpi += vdq_d * vdf_d;
       vpj_d -= vdq_d * vdf_d;
-      _mm256_store_pd((double*)(zp + j_d * 8 + 4), vpj_d);
+      _mm256_store_pd((double*)(&z[j_d][PX]), vpj_d);
     }
-    _mm256_store_pd((double*)(zp + i * 8 + 4), vpi);
+    _mm256_store_pd((double*)(&z[i][PX]), vpi);
     for (int k = (np / 4) * 4; k < np; k++) {
       const int j = sorted_list[kp + k];
       double dx = z[j][X] - z[i][X];

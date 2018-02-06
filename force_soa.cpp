@@ -74,9 +74,9 @@ force_sorted(void) {
   const int pn = particle_number;
   const int * __restrict sorted_list2 = sorted_list;
   for (int i = 0; i < pn; i++) {
-    const double qx_key = q[X][i];
-    const double qy_key = q[Y][i];
-    const double qz_key = q[Z][i];
+    const double qix = q[X][i];
+    const double qiy = q[Y][i];
+    const double qiz = q[Z][i];
     const int np = number_of_partners[i];
     double pfx = 0;
     double pfy = 0;
@@ -84,9 +84,9 @@ force_sorted(void) {
     const int kp = pointer[i];
     for (int k = 0; k < np; k++) {
       const int j = sorted_list2[kp + k];
-      double dx = q[X][j] - qx_key;
-      double dy = q[Y][j] - qy_key;
-      double dz = q[Z][j] - qz_key;
+      double dx = q[X][j] - qix;
+      double dy = q[Y][j] - qiy;
+      double dz = q[Z][j] - qiz;
       double r2 = (dx * dx + dy * dy + dz * dz);
       //if (r2 > CL2) continue;
       double r6 = r2 * r2 * r2;
@@ -113,9 +113,9 @@ force_avx2(void) {
   const v4df vc24 = _mm256_set_pd(24 * dt, 24 * dt, 24 * dt, 24 * dt);
   const v4df vc48 = _mm256_set_pd(48 * dt, 48 * dt, 48 * dt, 48 * dt);
   for (int i = 0; i < pn; i++) {
-    const double qx_key = q[X][i];
-    const double qy_key = q[Y][i];
-    const double qz_key = q[Z][i];
+    const double qix = q[X][i];
+    const double qiy = q[Y][i];
+    const double qiz = q[Z][i];
     const int np = number_of_partners[i];
     double pfx = 0;
     double pfy = 0;
@@ -184,9 +184,9 @@ force_avx2(void) {
     p[Z][i] += pfz;
     for (int k = (np / 4) * 4; k < np; k++) {
       const int j = sorted_list[kp + k];
-      double dx = q[X][j] - qx_key;
-      double dy = q[Y][j] - qy_key;
-      double dz = q[Z][j] - qz_key;
+      double dx = q[X][j] - qix;
+      double dy = q[Y][j] - qiy;
+      double dz = q[Z][j] - qiz;
       double r2 = (dx * dx + dy * dy + dz * dz);
       if (r2 > CL2) continue;
       double r6 = r2 * r2 * r2;
@@ -205,17 +205,17 @@ void
 force_swp(void) {
   const int pn = particle_number;
   for (int i = 0; i < pn; i++) {
-    const double qx_key = q[X][i];
-    const double qy_key = q[Y][i];
-    const double qz_key = q[Z][i];
+    const double qix = q[X][i];
+    const double qiy = q[Y][i];
+    const double qiz = q[Z][i];
     double pfx = 0;
     double pfy = 0;
     double pfz = 0;
     const int kp = pointer[i];
     int ja = sorted_list[kp];
-    double dxa = q[X][ja] - qx_key;
-    double dya = q[Y][ja] - qy_key;
-    double dza = q[Z][ja] - qz_key;
+    double dxa = q[X][ja] - qix;
+    double dya = q[Y][ja] - qiy;
+    double dza = q[Z][ja] - qiz;
     double df = 0.0;
     double dxb = 0.0, dyb = 0.0, dzb = 0.0;
     int jb = 0;
@@ -227,9 +227,9 @@ force_swp(void) {
       double r2 = (dx * dx + dy * dy + dz * dz);
       const int j = ja;
       ja = sorted_list[k + 1];
-      dxa = q[X][ja] - qx_key;
-      dya = q[Y][ja] - qy_key;
-      dza = q[Z][ja] - qz_key;
+      dxa = q[X][ja] - qix;
+      dya = q[Y][ja] - qiy;
+      dza = q[Z][ja] - qiz;
       if (r2 > CL2)continue;
       pfx += df * dxb;
       pfy += df * dyb;
@@ -265,9 +265,9 @@ force_avx512(void) {
   const v8df vcl2  = _mm512_set1_pd(CL2);
   const v8df vzero = _mm512_setzero_pd();
   for (int i = 0; i < pn; i++) {
-    const double qx_key = q[X][i];
-    const double qy_key = q[Y][i];
-    const double qz_key = q[Z][i];
+    const double qix = q[X][i];
+    const double qiy = q[Y][i];
+    const double qiz = q[Z][i];
     const v8df vqxi = _mm512_set1_pd(q[X][i]);
     const v8df vqyi = _mm512_set1_pd(q[Y][i]);
     const v8df vqzi = _mm512_set1_pd(q[Z][i]);
@@ -316,9 +316,9 @@ force_avx512(void) {
 
     for (int k = (np / 8) * 8; k < np; k++) {
       const int j = sorted_list2[kp + k];
-      double dx = q[X][j] - qx_key;
-      double dy = q[Y][j] - qy_key;
-      double dz = q[Z][j] - qz_key;
+      double dx = q[X][j] - qix;
+      double dy = q[Y][j] - qiy;
+      double dz = q[Z][j] - qiz;
       double r2 = (dx * dx + dy * dy + dz * dz);
       if (r2 > CL2) continue;
       double r6 = r2 * r2 * r2;

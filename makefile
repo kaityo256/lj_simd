@@ -86,7 +86,7 @@ test: $(TARGET)
 	diff soa_pair.dat soa_avx2.dat
 
 REF=aos_avx2.out
-SUB=soa_avx512_loopopt_swp.out
+SUB=aos_sorted_z_avx2.out
 
 test2: $(REF) $(SUB)
 	./$(REF) > orig.dat

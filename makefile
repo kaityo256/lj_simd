@@ -10,6 +10,7 @@ SOA_BINS =soa.out soa_pair.out soa_sorted.out
 SOA_BINS +=soa_avx2.out
 SOA_BINS +=soa_avx512.out
 SOA_BINS +=soa_avx512_loopopt.out
+SOA_BINS +=soa_avx512_loopopt_swp.out
 
 TARGET = $(AOS_BINS) $(SOA_BINS)
 
@@ -69,6 +70,9 @@ soa_avx512.out: force_soa.cpp
 soa_avx512_loopopt.out: force_soa.cpp
 	$(CC) $(CPPFLAGS) -DAVX512_LOOPOPT $< -o $@
 
+soa_avx512_loopopt_swp.out: force_soa.cpp
+	$(CC) $(CPPFLAGS) -DAVX512_LOOPOPT_SWP $< -o $@
+
 
 clean:
 	rm -f $(TARGET)
@@ -81,14 +85,12 @@ test: $(TARGET)
 	./soa_avx2.out > soa_avx2.dat
 	diff soa_pair.dat soa_avx2.dat
 
-test2: aos_avx2.out  aos_avx512_loopopt_swp.out 
-	./aos_avx2.out > orig.dat
-	./aos_avx512_loopopt_swp.out > test.dat
-	diff orig.dat test.dat
+REF=aos_avx2.out
+SUB=soa_avx512_loopopt_swp.out
 
-test3: aos_avx2.out  aos_avx512_loopopt.out 
-	./aos_avx2.out > aos_avx2.dat
-	./aos_avx512_loopopt.out > aos_avx512_loopopt.dat
-	diff aos_avx2.dat aos_avx512_loopopt.dat
+test2: $(REF) $(SUB)
+	./$(REF) > orig.dat
+	./$(SUB) > test.dat
+	diff orig.dat test.dat
 
 -include makefile.opt

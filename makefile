@@ -1,4 +1,7 @@
-AVX512=1
+CC=g++
+CPPFLAGS=-O3 -std=c++11 -march=native
+
+-include makefile.opt
 
 ifdef AVX512
 DAVX512=-DAVX512
@@ -24,8 +27,6 @@ endif
 
 TARGET = $(AOS_BINS) $(SOA_BINS)
 
-CC=g++
-CPPFLAGS=-O3 -std=c++11 -march=native
 
 all: $(TARGET)
 
@@ -103,4 +104,3 @@ test2: $(REF) $(SUB)
 	./$(SUB) > test.dat
 	diff orig.dat test.dat
 
--include makefile.opt

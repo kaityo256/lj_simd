@@ -126,14 +126,14 @@ force_avx2(void) {
     const v4df vqiz = _mm256_set_pd(q[Z][i], q[Z][i], q[Z][i], q[Z][i]);
 
     for (int k = 0; k < (np / 4) * 4; k += 4) {
-      const int j_a = sorted_list[kp + k];
-      const int j_b = sorted_list[kp + k + 1];
-      const int j_c = sorted_list[kp + k + 2];
-      const int j_d = sorted_list[kp + k + 3];
+      const int j_1 = sorted_list[kp + k];
+      const int j_2 = sorted_list[kp + k + 1];
+      const int j_3 = sorted_list[kp + k + 2];
+      const int j_4 = sorted_list[kp + k + 3];
 
-      const v4df vqjx = _mm256_set_pd(q[X][j_a], q[X][j_b], q[X][j_c], q[X][j_d]);
-      const v4df vqjy = _mm256_set_pd(q[Y][j_a], q[Y][j_b], q[Y][j_c], q[Y][j_d]);
-      const v4df vqjz = _mm256_set_pd(q[Z][j_a], q[Z][j_b], q[Z][j_c], q[Z][j_d]);
+      const v4df vqjx = _mm256_set_pd(q[X][j_1], q[X][j_2], q[X][j_3], q[X][j_4]);
+      const v4df vqjy = _mm256_set_pd(q[Y][j_1], q[Y][j_2], q[Y][j_3], q[Y][j_4]);
+      const v4df vqjz = _mm256_set_pd(q[Z][j_1], q[Z][j_2], q[Z][j_3], q[Z][j_4]);
 
       const v4df vdx = vqjx - vqix;
       const v4df vdy = vqjy - vqiy;
@@ -154,30 +154,30 @@ force_avx2(void) {
       pfy += dfy[3];
       pfz += dfz[3];
 
-      p[X][j_a] -= dfx[3];
-      p[Y][j_a] -= dfy[3];
-      p[Z][j_a] -= dfz[3];
+      p[X][j_1] -= dfx[3];
+      p[Y][j_1] -= dfy[3];
+      p[Z][j_1] -= dfz[3];
 
       pfx += dfx[2];
       pfy += dfy[2];
       pfz += dfz[2];
-      p[X][j_b] -= dfx[2];
-      p[Y][j_b] -= dfy[2];
-      p[Z][j_b] -= dfz[2];
+      p[X][j_2] -= dfx[2];
+      p[Y][j_2] -= dfy[2];
+      p[Z][j_2] -= dfz[2];
 
       pfx += dfx[1];
       pfy += dfy[1];
       pfz += dfz[1];
-      p[X][j_c] -= dfx[1];
-      p[Y][j_c] -= dfy[1];
-      p[Z][j_c] -= dfz[1];
+      p[X][j_3] -= dfx[1];
+      p[Y][j_3] -= dfy[1];
+      p[Z][j_3] -= dfz[1];
 
       pfx += dfx[0];
       pfy += dfy[0];
       pfz += dfz[0];
-      p[X][j_d] -= dfx[0];
-      p[Y][j_d] -= dfy[0];
-      p[Z][j_d] -= dfz[0];
+      p[X][j_4] -= dfx[0];
+      p[Y][j_4] -= dfy[0];
+      p[Z][j_4] -= dfz[0];
     }
     p[X][i] += pfx;
     p[Y][i] += pfy;

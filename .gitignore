@@ -1,3 +1,4 @@
 makefile.opt
 *.out
 *.dat
+*.swp

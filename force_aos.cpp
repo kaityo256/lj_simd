@@ -478,6 +478,9 @@ force_avx512(void) {
   }
 }
 //----------------------------------------------------------------------
+// ループ端数最適化については以下のコードを参照した
+// c.f. https://github.com/kohnakagawa/lj_knl
+//----------------------------------------------------------------------
 void
 force_avx512_loopopt(void) {
   const int pn = particle_number;
@@ -534,6 +537,111 @@ force_avx512_loopopt(void) {
 
       vk_idx = _mm512_add_epi64(vk_idx, vpitch);
     }
+    z[i][PX] += _mm512_reduce_add_pd(vpxi);
+    z[i][PY] += _mm512_reduce_add_pd(vpyi);
+    z[i][PZ] += _mm512_reduce_add_pd(vpzi);
+  }
+}
+//----------------------------------------------------------------------
+void
+force_avx512_loopopt_swp(void) {
+  const int pn = particle_number;
+  const v8df vc24 = _mm512_set1_pd(24.0 * dt);
+  const v8df vc48 = _mm512_set1_pd(48.0 * dt);
+  const v8df vcl2  = _mm512_set1_pd(CL2);
+  const v8df vzero = _mm512_setzero_pd();
+  const auto vpitch = _mm512_set1_epi64(8);
+  for (int i = 0; i < pn; i++) {
+    const double qix = z[i][X];
+    const double qiy = z[i][Y];
+    const double qiz = z[i][Z];
+    const int np = number_of_partners[i];
+    const auto vnp = _mm512_set1_epi64(np);
+    v8df vpxi = _mm512_setzero_pd();
+    v8df vpyi = _mm512_setzero_pd();
+    v8df vpzi = _mm512_setzero_pd();
+    v8df vqxi = _mm512_set1_pd(z[i][X]);
+    v8df vqyi = _mm512_set1_pd(z[i][Y]);
+    v8df vqzi = _mm512_set1_pd(z[i][Z]);
+    auto vk_idx = _mm512_set_epi64(7LL, 6LL, 5LL, 4LL, 3LL, 2LL, 1LL, 0LL);
+    const int kp = pointer[i];
+    int k = 0;
+    auto mask_loop = _mm512_cmp_epi64_mask(vk_idx, vnp, _MM_CMPINT_LT);
+    auto vindex = _mm256_lddqu_si256((const __m256i*)(&sorted_list[kp + k]));
+    vindex = _mm256_slli_epi32(vindex, 3);
+    v8df vqxj = _mm512_i32gather_pd(vindex, &(z[0][X]), 8);
+    v8df vqyj = _mm512_i32gather_pd(vindex, &(z[0][Y]), 8);
+    v8df vqzj = _mm512_i32gather_pd(vindex, &(z[0][Z]), 8);
+    v8df vdx = vqxj - vqxi;
+    v8df vdy = vqyj - vqyi;
+    v8df vdz = vqzj - vqzi;
+    v8df vr2 = vdx * vdx + vdy * vdy + vdz * vdz;
+    v8df vr6 =  vr2 * vr2 * vr2;
+    v8df vdf = (vc24 * vr6 - vc48) / (vr6 * vr6 * vr2);
+    auto mask_cutoff = _mm512_cmp_pd_mask(vr2, vcl2, _CMP_LE_OS);
+    auto mask = _mm512_kand(mask_cutoff, mask_loop);
+    vdf = _mm512_mask_blend_pd(mask, vzero, vdf);
+    v8df vpxj, vpyj, vpzj;
+    for (k = 8; k < np; k += 8) {
+      // 先送り場所
+      vk_idx = _mm512_add_epi64(vk_idx, vpitch);
+      auto mask_loop_b = _mm512_cmp_epi64_mask(vk_idx, vnp, _MM_CMPINT_LT);
+      auto vindex_b = _mm256_lddqu_si256((const __m256i*)(&sorted_list[kp + k]));
+      vindex_b = _mm256_slli_epi32(vindex_b, 3);
+      vqxj = _mm512_i32gather_pd(vindex_b, &(z[0][X]), 8);
+      vqyj = _mm512_i32gather_pd(vindex_b, &(z[0][Y]), 8);
+      vqzj = _mm512_i32gather_pd(vindex_b, &(z[0][Z]), 8);
+      auto vdx_b = vqxj - vqxi;
+      auto vdy_b = vqyj - vqyi;
+      auto vdz_b = vqzj - vqzi;
+      vr2 = vdx_b * vdx_b + vdy_b * vdy_b + vdz_b * vdz_b;
+      vr6 =  vr2 * vr2 * vr2;
+      mask_cutoff = _mm512_cmp_pd_mask(vr2, vcl2, _CMP_LE_OS);
+      mask = _mm512_kand(mask_cutoff, mask_loop_b);
+      //
+
+      vpxj = _mm512_i32gather_pd(vindex, &(z[0][PX]), 8);
+      vpyj = _mm512_i32gather_pd(vindex, &(z[0][PY]), 8);
+      vpzj = _mm512_i32gather_pd(vindex, &(z[0][PZ]), 8);
+
+
+      vpxj -= vdf * vdx;
+      vpyj -= vdf * vdy;
+      vpzj -= vdf * vdz;
+      //混ぜる
+
+      //
+      vpxi += vdf * vdx;
+      vpyi += vdf * vdy;
+      vpzi += vdf * vdz;
+
+      _mm512_mask_i32scatter_pd(&(z[0][PX]), mask_loop, vindex, vpxj, 8);
+      _mm512_mask_i32scatter_pd(&(z[0][PY]), mask_loop, vindex, vpyj, 8);
+      _mm512_mask_i32scatter_pd(&(z[0][PZ]), mask_loop, vindex, vpzj, 8);
+
+      // --8<--
+      mask_loop = mask_loop_b;
+      vdf = (vc24 * vr6 - vc48) / (vr6 * vr6 * vr2);
+      vdf = _mm512_mask_blend_pd(mask, vzero, vdf);
+      vindex = vindex_b;
+      vdx = vdx_b;
+      vdy = vdy_b;
+      vdz = vdz_b;
+    }
+    vpxj = _mm512_i32gather_pd(vindex, &(z[0][PX]), 8);
+    vpyj = _mm512_i32gather_pd(vindex, &(z[0][PY]), 8);
+    vpzj = _mm512_i32gather_pd(vindex, &(z[0][PZ]), 8);
+    vpxj -= vdf * vdx;
+    vpyj -= vdf * vdy;
+    vpzj -= vdf * vdz;
+    vpxi += vdf * vdx;
+    vpyi += vdf * vdy;
+    vpzi += vdf * vdz;
+
+    _mm512_mask_i32scatter_pd(&(z[0][PX]), mask_loop, vindex, vpxj, 8);
+    _mm512_mask_i32scatter_pd(&(z[0][PY]), mask_loop, vindex, vpyj, 8);
+    _mm512_mask_i32scatter_pd(&(z[0][PZ]), mask_loop, vindex, vpzj, 8);
+
     z[i][PX] += _mm512_reduce_add_pd(vpxi);
     z[i][PY] += _mm512_reduce_add_pd(vpyi);
     z[i][PZ] += _mm512_reduce_add_pd(vpzi);
@@ -762,6 +870,11 @@ main(void) {
 #elif AVX512_LOOPOPT
   copy_to_z();
   measure(&force_avx512_loopopt, "avx512_loopopt", particle_number);
+  copy_from_z();
+  aosdm.print_results(particle_number);
+#elif AVX512_LOOPOPT_SWP
+  copy_to_z();
+  measure(&force_avx512_loopopt_swp, "avx512_loopopt_swp", particle_number);
   copy_from_z();
   aosdm.print_results(particle_number);
 #elif AVX512_GATHERONLY

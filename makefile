@@ -2,6 +2,7 @@ AOS_BINS= aos.out aos_pair.out aos_sorted.out
 AOS_BINS +=aos_avx2.out
 AOS_BINS +=aos_avx512.out
 AOS_BINS +=aos_avx512_loopopt.out
+AOS_BINS +=aos_avx512_loopopt_swp.out
 AOS_BINS +=aos_avx512_gatheronly.out
 AOS_BINS +=aos_avx512_transpose.out
 
@@ -41,6 +42,9 @@ aos_avx512.out: force_aos.cpp
 aos_avx512_loopopt.out: force_aos.cpp
 	$(CC) $(CPPFLAGS) -DAVX512_LOOPOPT $< -o $@
 
+aos_avx512_loopopt_swp.out: force_aos.cpp
+	$(CC) $(CPPFLAGS) -DAVX512_LOOPOPT_SWP $< -o $@
+
 aos_avx512_gatheronly.out: force_aos.cpp
 	$(CC) $(CPPFLAGS) -DAVX512_GATHERONLY $< -o $@
 
@@ -77,9 +81,9 @@ test: $(TARGET)
 	./soa_avx2.out > soa_avx2.dat
 	diff soa_pair.dat soa_avx2.dat
 
-test2: aos_avx2.out  aos_avx512_gatheronly.out 
+test2: aos_avx2.out  aos_avx512_loopopt_swp.out 
 	./aos_avx2.out > orig.dat
-	./aos_avx512_gatheronly.out > test.dat
+	./aos_avx512_loopopt_swp.out > test.dat
 	diff orig.dat test.dat
 
 test3: aos_avx2.out  aos_avx512_loopopt.out 

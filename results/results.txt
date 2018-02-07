@@ -62,3 +62,22 @@ N=119164, avx2 21032 [ms]
 N=119164, avx512 9627 [ms]
 N=119164, avx512_loopopt 7916 [ms]
 N=119164, avx512_loopopt_swp 7269 [ms]
+
+# iMac
+# Core i5 @ 3.3 GHz
+# g++ -O3 -std=c++11 -march=native
+AoS
+N=119164, pair 6517 [ms]
+N=119164, sorted 4515 [ms]
+N=119164, sorted_swp 4213 [ms]
+N=119164, avx2 1821 [ms]
+N=119164, avx2_swp 1951 [ms]
+N=119164, sorted_z 4581 [ms]
+N=119164, sorted_z_avx2 1738 [ms]
+N=119164, sorted_z_avx2_swp 1705 [ms]
+SoA
+N=119164, pair 6416 [ms]
+N=119164, sorted 4536 [ms]
+N=119164, sorted_swp 3818 [ms]
+N=119164, avx2 3528 [ms]
+

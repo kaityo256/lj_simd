@@ -1201,6 +1201,7 @@ main(void) {
   copy_to_z();
   measure(&force_sorted_z, "sorted_z", particle_number);
   measure(&force_sorted_z_avx2, "sorted_z_avx2", particle_number);
+  measure(&force_sorted_z_avx2_swp, "sorted_z_avx2_swp", particle_number);
 #ifdef AVX512
   measure(&force_avx512, "avx512", particle_number);
   measure(&force_avx512_loopopt, "avx512_loopopt", particle_number);

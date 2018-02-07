@@ -39,3 +39,26 @@ N=119164, avx512 3228 [ms]
 N=119164, avx512_loopopt 2965 [ms]
 N=119164, avx512_loopopt_swp 2695 [ms]
 
+# Oakforest-PACS
+# Intel(R) Xeon Phi(TM) CPU 7250 @ 1.40GHz
+AoS
+N=119164, pair 20132 [ms]
+N=119164, sorted 10428 [ms]
+N=119164, sorted_swp 28305 [ms]
+N=119164, avx2 13493 [ms]
+N=119164, avx2_swp 14710 [ms]
+N=119164, sorted_z 10415 [ms]
+N=119164, sorted_z_avx2 13424 [ms]
+N=119164, sorted_z_avx2_swp 14528 [ms]
+N=119164, avx512 9605 [ms]
+N=119164, avx512_loopopt 8491 [ms]
+N=119164, avx512_loopopt_swp 6908 [ms]
+N=119164, avx512_transpose 9774 [ms]
+SoA
+N=119164, pair 19777 [ms]
+N=119164, sorted 10368 [ms]
+N=119164, sorted_swp 27614 [ms]
+N=119164, avx2 21032 [ms]
+N=119164, avx512 9627 [ms]
+N=119164, avx512_loopopt 7916 [ms]
+N=119164, avx512_loopopt_swp 7269 [ms]

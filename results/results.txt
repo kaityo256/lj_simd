@@ -1,0 +1,23 @@
+# Intel(R) Xeon(R) Gold 6148 CPU @ 2.40GHz
+AoS
+N=119164, pair 6254 [ms]
+N=119164, sorted 4575 [ms]
+N=119164, sorted_swp 4533 [ms]
+N=119164, avx2 2553 [ms]
+N=119164, avx2_swp 2530 [ms]
+N=119164, sorted_z 4495 [ms]
+N=119164, sorted_z_avx2 2507 [ms]
+N=119164, sorted_z_avx2_swp 2484 [ms]
+N=119164, avx512 3577 [ms]
+N=119164, avx512_loopopt 3050 [ms]
+N=119164, avx512_loopopt_swp 2566 [ms]
+N=119164, avx512_transpose 3268 [ms]
+SoA
+N=119164, pair 5629 [ms]
+N=119164, sorted 4743 [ms]
+N=119164, sorted_swp 4369 [ms]
+N=119164, avx2 4299 [ms]
+N=119164, avx512 3228 [ms]
+N=119164, avx512_loopopt 2965 [ms]
+N=119164, avx512_loopopt_swp 2695 [ms]
+

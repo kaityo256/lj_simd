@@ -1,14 +1,15 @@
 # ISSP System B
 # Intel(R) Xeon(R) CPU E5-2680 v3 @ 2.50GHz
 AoS
-N=119164, pair 8185 [ms]
-N=119164, sorted 7140 [ms]
-N=119164, sorted_swp 5745 [ms]
-N=119164, avx2 3519 [ms]
-N=119164, avx2_swp 3325 [ms]
-N=119164, sorted_z 5334 [ms]
-N=119164, sorted_z_avx2 3386 [ms]
-N=119164, sorted_z_avx2_swp 3301 [ms]
+N=119164, pair 8801 [ms]
+N=119164, sorted 7148 [ms]
+N=119164, sorted_swp 5765 [ms]
+N=119164, avx2 3528 [ms]
+N=119164, avx2_swp 3326 [ms]
+N=119164, sorted_z 5338 [ms]
+N=119164, sorted_z_avx2 3394 [ms]
+N=119164, sorted_z_avx2_swp 3309 [ms]
+
 SoA
 N=119164, pair 6619 [ms]
 N=119164, sorted 7047 [ms]

@@ -111,7 +111,6 @@ force_sorted(void) {
       double dy = q[j][Y] - qiy;
       double dz = q[j][Z] - qiz;
       double r2 = (dx * dx + dy * dy + dz * dz);
-      //if (r2 > CL2) continue;
       double r6 = r2 * r2 * r2;
       double df = ((24.0 * r6 - 48.0) / (r6 * r6 * r2)) * dt;
       if (r2 > CL2) df = 0.0;
@@ -146,7 +145,6 @@ force_sorted_z(void) {
       double dy = z[j][Y] - qiy;
       double dz = z[j][Z] - qiz;
       double r2 = (dx * dx + dy * dy + dz * dz);
-      //if (r2 > CL2) continue;
       double r6 = r2 * r2 * r2;
       double df = ((24.0 * r6 - 48.0) / (r6 * r6 * r2)) * dt;
       if (r2 > CL2) df = 0.0;
@@ -291,9 +289,9 @@ force_avx2(void) {
       double dy = q[j][Y] - q[i][Y];
       double dz = q[j][Z] - q[i][Z];
       double r2 = (dx * dx + dy * dy + dz * dz);
-      if (r2 > CL2) continue;
       double r6 = r2 * r2 * r2;
       double df = ((24.0 * r6 - 48.0) / (r6 * r6 * r2)) * dt;
+      if (r2 > CL2) df = 0.0;
       p[i][X] += df * dx;
       p[i][Y] += df * dy;
       p[i][Z] += df * dz;
@@ -449,9 +447,9 @@ force_avx2_swp(void) {
       double dy = q[j][Y] - q[i][Y];
       double dz = q[j][Z] - q[i][Z];
       double r2 = (dx * dx + dy * dy + dz * dz);
-      if (r2 > CL2) continue;
       double r6 = r2 * r2 * r2;
       double df = ((24.0 * r6 - 48.0) / (r6 * r6 * r2)) * dt;
+      if (r2 > CL2) df = 0.0;
       p[i][X] += df * dx;
       p[i][Y] += df * dy;
       p[i][Z] += df * dz;
@@ -622,6 +620,7 @@ force_sorted_z_avx2_swp(void) {
       vdz = _mm256_permute2f128_pd(tmp0, tmp2, 0x31);
       v4df vr2 = vdx * vdx + vdy * vdy + vdz * vdz;
       vr6 = vr2 * vr2 * vr2;
+      mask = vcl2 - vr2;
 
       // --- 8< ---
       vdf_1 = _mm256_permute4x64_pd(vdf, 0);
@@ -629,25 +628,26 @@ force_sorted_z_avx2_swp(void) {
       vdf_3 = _mm256_permute4x64_pd(vdf, 170);
       vdf_4 = _mm256_permute4x64_pd(vdf, 255);
 
+      vpi += vdq_1 * vdf_1;
+      vpi += vdq_4 * vdf_4;
+      vpi += vdq_2 * vdf_2;
+      vpi += vdq_3 * vdf_3;
       vpj_1 = _mm256_load_pd((double*)(&z[j_1][PX]));
       vpj_2 = _mm256_load_pd((double*)(&z[j_2][PX]));
       vpj_3 = _mm256_load_pd((double*)(&z[j_3][PX]));
       vpj_4 = _mm256_load_pd((double*)(&z[j_4][PX]));
+
 
       vpj_1 -= vdq_1 * vdf_1;
       vpj_2 -= vdq_2 * vdf_2;
       vpj_3 -= vdq_3 * vdf_3;
       vpj_4 -= vdq_4 * vdf_4;
 
-      vpi += vdq_1 * vdf_1;
-      vpi += vdq_4 * vdf_4;
-      vpi += vdq_2 * vdf_2;
-      vpi += vdq_3 * vdf_3;
-
       _mm256_store_pd((double*)(&z[j_1][PX]), vpj_1);
       _mm256_store_pd((double*)(&z[j_2][PX]), vpj_2);
       _mm256_store_pd((double*)(&z[j_3][PX]), vpj_3);
       _mm256_store_pd((double*)(&z[j_4][PX]), vpj_4);
+
 
       // --- 8< ---
       j_1 = j_1_b; 
@@ -659,7 +659,6 @@ force_sorted_z_avx2_swp(void) {
       vdq_3 = vdq_3_b;
       vdq_4 = vdq_4_b;
       vdf = (vc24 * vr6 - vc48) / (vr6 * vr6 * vr2);
-      mask = vcl2 - vr2;
       vdf = _mm256_blendv_pd(vdf, vzero, mask);
     }
     // --- 8< ---
@@ -673,14 +672,15 @@ force_sorted_z_avx2_swp(void) {
     vpj_3 = _mm256_load_pd((double*)(&z[j_3][PX]));
     vpj_4 = _mm256_load_pd((double*)(&z[j_4][PX]));
 
-    vpi += vdq_1 * vdf_1;
-    vpi += vdq_2 * vdf_2;
-    vpi += vdq_3 * vdf_3;
-    vpi += vdq_4 * vdf_4;
     vpj_1 -= vdq_1 * vdf_1;
     vpj_2 -= vdq_2 * vdf_2;
     vpj_3 -= vdq_3 * vdf_3;
     vpj_4 -= vdq_4 * vdf_4;
+
+    vpi += vdq_1 * vdf_1;
+    vpi += vdq_2 * vdf_2;
+    vpi += vdq_3 * vdf_3;
+    vpi += vdq_4 * vdf_4;
 
     _mm256_store_pd((double*)(&z[j_1][PX]), vpj_1);
     _mm256_store_pd((double*)(&z[j_2][PX]), vpj_2);
@@ -695,9 +695,9 @@ force_sorted_z_avx2_swp(void) {
       double dy = z[j][Y] - z[i][Y];
       double dz = z[j][Z] - z[i][Z];
       double r2 = (dx * dx + dy * dy + dz * dz);
-      if (r2 > CL2) continue;
       double r6 = r2 * r2 * r2;
       double df = ((24.0 * r6 - 48.0) / (r6 * r6 * r2)) * dt;
+      if (r2 > CL2) df = 0.0;
       z[i][PX] += df * dx;
       z[i][PY] += df * dy;
       z[i][PZ] += df * dz;

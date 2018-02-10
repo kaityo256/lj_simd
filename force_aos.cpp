@@ -162,7 +162,7 @@ force_sorted_z(void) {
 }
 //----------------------------------------------------------------------
 void
-force_swp(void) {
+force_sorted_swp(void) {
   const int pn = particle_number;
   for (int i = 0; i < pn; i++) {
     const double qix = q[i][X];
@@ -1146,6 +1146,9 @@ main(void) {
 #elif SORTED
   measure(&force_sorted, "sorted", particle_number);
   aosdm.print_results(particle_number);
+#elif SORTED_SWP
+  measure(&force_sorted_swp, "sorted_swp", particle_number);
+  aosdm.print_results(particle_number);
 #elif AVX2
   measure(&force_avx2, "avx2", particle_number);
   aosdm.print_results(particle_number);
@@ -1195,7 +1198,7 @@ main(void) {
 #else
   measure(&force_pair, "pair", particle_number);
   measure(&force_sorted, "sorted", particle_number);
-  measure(&force_swp, "sorted_swp", particle_number);
+  measure(&force_sorted_swp, "sorted_swp", particle_number);
   measure(&force_avx2, "avx2", particle_number);
   measure(&force_avx2_swp, "avx2_swp", particle_number);
   copy_to_z();

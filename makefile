@@ -7,7 +7,7 @@ ifdef AVX512
 DAVX512=-DAVX512
 endif
 
-AOS_BINS= aos.out aos_pair.out aos_sorted.out
+AOS_BINS= aos.out aos_pair.out aos_sorted.out aos_sorted_swp.out
 AOS_BINS +=aos_avx2.out
 AOS_BINS +=aos_avx2_swp.out
 AOS_BINS +=aos_sorted_z_avx2_swp.out
@@ -19,7 +19,7 @@ AOS_BINS +=aos_avx512_gatheronly.out
 AOS_BINS +=aos_avx512_transpose.out
 endif
 
-SOA_BINS =soa.out soa_pair.out soa_sorted.out
+SOA_BINS =soa.out soa_pair.out soa_sorted.out soa_sorted_swp.out
 SOA_BINS +=soa_avx2.out
 ifdef AVX512
 SOA_BINS +=soa_avx512.out
@@ -40,6 +40,9 @@ aos_pair.out: force_aos.cpp
 
 aos_sorted.out: force_aos.cpp
 	$(CC) $(CPPFLAGS) -DSORTED $< -o $@
+
+aos_sorted_swp.out: force_aos.cpp
+	$(CC) $(CPPFLAGS) -DSORTED_SWP $< -o $@
 
 aos_avx2.out: force_aos.cpp
 	$(CC) $(CPPFLAGS) -DAVX2 $< -o $@
@@ -79,6 +82,9 @@ soa_pair.out: force_soa.cpp
 
 soa_sorted.out: force_soa.cpp
 	$(CC) $(CPPFLAGS) -DSORTED $< -o $@
+
+soa_sorted_swp.out: force_soa.cpp
+	$(CC) $(CPPFLAGS) -DSORTED_SWP $< -o $@
 
 soa_avx2.out: force_soa.cpp
 	$(CC) $(CPPFLAGS) -DAVX2 $< -o $@

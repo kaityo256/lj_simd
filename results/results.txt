@@ -82,3 +82,21 @@ N=119164, sorted 4536 [ms]
 N=119164, sorted_swp 3818 [ms]
 N=119164, avx2 3528 [ms]
 
+# AMD EPYC
+# AMD EPYC 7281 16-Core Processor
+#g++ -O3 -std=c++11 -march=native
+AoS
+N=119164, pair 10635 [ms]
+N=119164, sorted 9755 [ms]
+N=119164, sorted_swp 6951 [ms]
+N=119164, avx2 5476 [ms]
+N=119164, avx2_swp 3894 [ms]
+N=119164, sorted_z 9759 [ms]
+N=119164, sorted_z_avx2 5427 [ms]
+N=119164, sorted_z_avx2_swp 3458 [ms]
+SoA
+N=119164, pair 10674 [ms]
+N=119164, sorted 9812 [ms]
+N=119164, sorted_swp 7014 [ms]
+N=119164, avx2 5580 [ms]
+

@@ -1,5 +1,7 @@
 # ISSP System B
 # Intel(R) Xeon(R) CPU E5-2680 v3 @ 2.50GHz
+# icpc (ICC) 16.0.4 20160811
+# -O3 -xHOST -std=c++11 -w2 -w3 -diag-disable:remark -restrict 
 AoS
 N=119164, pair 8801 [ms]
 N=119164, sorted 7148 [ms]
@@ -18,6 +20,8 @@ N=119164, avx2 5683 [ms]
 
 # ISSP System C
 # Intel(R) Xeon(R) Gold 6148 CPU @ 2.40GHz
+# icpc (ICC) 18.0.1 20171018
+# -O3 -std=c++11 -w2 -w3 -diag-disable:remark -restrict -xCORE-AVX512 -qopt-zmm-usage=high
 AoS
 N=119164, pair 5618 [ms]
 N=119164, sorted 4587 [ms]
@@ -42,6 +46,8 @@ N=119164, avx512_loopopt_swp 2695 [ms]
 
 # Oakforest-PACS
 # Intel(R) Xeon Phi(TM) CPU 7250 @ 1.40GHz
+# icpc (ICC) 18.0.1 20171018
+# -O3 -std=c++11 -w2 -w3 -diag-disable:remark -restrict -axMIC-AVX512
 AoS
 N=119164, pair 20132 [ms]
 N=119164, sorted 10428 [ms]

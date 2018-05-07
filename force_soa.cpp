@@ -14,37 +14,40 @@ int pointer[N], pointer2[N];
 int sorted_list[MAX_PAIRS] = {};
 //----------------------------------------------------------------------
 class SoADataManager : public DataManager {
-private:
-  double (*p)[N];
-  double (*q)[N];
-public:
-  SoADataManager(double _p[D][N], double _q[D][N]) {
-    p = _p;
-    q = _q;
-  }
-  void add_particle(double x, double y, double z, int &particle_number) {
-    static std::mt19937 mt(2);
-    std::uniform_real_distribution<double> ud(0.0, 0.1);
-    q[X][particle_number] = x + ud(mt);
-    q[Y][particle_number] = y + ud(mt);
-    q[Z][particle_number] = z + ud(mt);
-    particle_number++;
-  }
-  double calc_distance(int i, int j) {
-    const double dx = q[X][i] - q[X][j];
-    const double dy = q[Y][i] - q[Y][j];
-    const double dz = q[Z][i] - q[Z][j];
-    return dx * dx + dy * dy + dz * dz;
-  }
+  private:
+    double (*p)[N];
+    double (*q)[N];
+  public:
+    SoADataManager(double _p[D][N], double _q[D][N]) {
+      p = _p;
+      q = _q;
+    }
+    void
+    add_particle(double x, double y, double z, int &particle_number) {
+      static std::mt19937 mt(2);
+      std::uniform_real_distribution<double> ud(0.0, 0.1);
+      q[X][particle_number] = x + ud(mt);
+      q[Y][particle_number] = y + ud(mt);
+      q[Z][particle_number] = z + ud(mt);
+      particle_number++;
+    }
+    double
+    calc_distance(int i, int j) {
+      const double dx = q[X][i] - q[X][j];
+      const double dy = q[Y][i] - q[Y][j];
+      const double dz = q[Z][i] - q[Z][j];
+      return dx * dx + dy * dy + dz * dz;
+    }
 
-  void print_results(int particle_number) {
-    for (int i = 0; i < 5; i++) {
-      printf("%.10f %.10f %.10f\n", p[X][i], p[Y][i], p[Z][i]);
+    void
+    print_results(int particle_number) {
+      for (int i = 0; i < 5; i++) {
+        printf("%.10f %.10f %.10f\n", p[X][i], p[Y][i], p[Z][i]);
+      }
+      for (int i = particle_number - 5; i < particle_number; i++) {
+        printf("%.10f %.10f %.10f\n", p[X][i], p[Y][i], p[Z][i]);
+      }
     }
-    for (int i = particle_number - 5; i < particle_number; i++) {
-      printf("%.10f %.10f %.10f\n", p[X][i], p[Y][i], p[Z][i]);
-    }
-  }
 };
 //----------------------------------------------------------------------
 void
@@ -72,7 +75,7 @@ force_pair(void) {
 void
 force_sorted(void) {
   const int pn = particle_number;
-  const int * __restrict sorted_list2 = sorted_list;
+  const int *__restrict sorted_list2 = sorted_list;
   for (int i = 0; i < pn; i++) {
     const double qix = q[X][i];
     const double qiy = q[Y][i];
@@ -146,9 +149,9 @@ force_avx2(void) {
       v4df vdfx = vdf * vdx;
       v4df vdfy = vdf * vdy;
       v4df vdfz = vdf * vdz;
-      double *dfx = (double*)(&vdfx);
-      double *dfy = (double*)(&vdfy);
-      double *dfz = (double*)(&vdfz);
+      double *dfx = (double *)(&vdfx);
+      double *dfy = (double *)(&vdfy);
+      double *dfz = (double *)(&vdfz);
 
       pfx += dfx[3];
       pfy += dfy[3];
@@ -222,6 +225,20 @@ force_avx2_swp(void) {
     const v4df vqiz = _mm256_set_pd(q[Z][i], q[Z][i], q[Z][i], q[Z][i]);
 
     int k = 0;
+    const int j_1 = sorted_list[kp + k];
+    const int j_2 = sorted_list[kp + k + 1];
+    const int j_3 = sorted_list[kp + k + 2];
+    const int j_4 = sorted_list[kp + k + 3];
+
+    const v4df vqjx = _mm256_set_pd(q[X][j_1], q[X][j_2], q[X][j_3], q[X][j_4]);
+    const v4df vqjy = _mm256_set_pd(q[Y][j_1], q[Y][j_2], q[Y][j_3], q[Y][j_4]);
+    const v4df vqjz = _mm256_set_pd(q[Z][j_1], q[Z][j_2], q[Z][j_3], q[Z][j_4]);
+
+    const v4df vdx = vqjx - vqix;
+    const v4df vdy = vqjy - vqiy;
+    const v4df vdz = vqjz - vqiz;
+    const v4df vr2 = vdx * vdx + vdy * vdy + vdz * vdz;
+
     for (k = 0; k < (np / 4) * 4; k += 4) {
       const int j_1 = sorted_list[kp + k];
       const int j_2 = sorted_list[kp + k + 1];
@@ -244,9 +261,9 @@ force_avx2_swp(void) {
       v4df vdfx = vdf * vdx;
       v4df vdfy = vdf * vdy;
       v4df vdfz = vdf * vdz;
-      double *dfx = (double*)(&vdfx);
-      double *dfy = (double*)(&vdfy);
-      double *dfz = (double*)(&vdfz);
+      double *dfx = (double *)(&vdfx);
+      double *dfy = (double *)(&vdfy);
+      double *dfz = (double *)(&vdfz);
 
       pfx += dfx[3];
       pfy += dfy[3];
@@ -359,7 +376,7 @@ force_sorted_swp(void) {
 void
 force_avx512(void) {
   const int pn = particle_number;
-  const int * __restrict sorted_list2 = sorted_list;
+  const int *__restrict sorted_list2 = sorted_list;
   const v8df vc24 = _mm512_set1_pd(24.0 * dt);
   const v8df vc48 = _mm512_set1_pd(48.0 * dt);
   const v8df vcl2  = _mm512_set1_pd(CL2);
@@ -380,7 +397,7 @@ force_avx512(void) {
     v8df vpzi = _mm512_setzero_pd();
     const int kp = pointer[i];
     for (int k = 0; k < (np / 8) * 8; k += 8) {
-      const auto vindex = _mm256_lddqu_si256((const __m256i*)(&sorted_list[kp + k]));
+      const auto vindex = _mm256_lddqu_si256((const __m256i *)(&sorted_list[kp + k]));
       const v8df vqxj = _mm512_i32gather_pd(vindex, &(q[X][0]), 8);
       const v8df vqyj = _mm512_i32gather_pd(vindex, &(q[Y][0]), 8);
       const v8df vqzj = _mm512_i32gather_pd(vindex, &(q[Z][0]), 8);
@@ -459,7 +476,7 @@ force_avx512_loopopt(void) {
     const int kp = pointer[i];
     for (int k = 0; k < np; k += 8) {
       const auto mask_loop = _mm512_cmp_epi64_mask(vk_idx, vnp, _MM_CMPINT_LT);
-      const auto vindex = _mm256_lddqu_si256((const __m256i*)(&sorted_list[kp + k]));
+      const auto vindex = _mm256_lddqu_si256((const __m256i *)(&sorted_list[kp + k]));
       const v8df vqxj = _mm512_i32gather_pd(vindex, &(q[X][0]), 8);
       const v8df vqyj = _mm512_i32gather_pd(vindex, &(q[Y][0]), 8);
       const v8df vqzj = _mm512_i32gather_pd(vindex, &(q[Z][0]), 8);
@@ -518,7 +535,7 @@ force_avx512_loopopt_swp(void) {
     const int kp = pointer[i];
     int k = 0;
     auto mask_loop = _mm512_cmp_epi64_mask(vk_idx, vnp, _MM_CMPINT_LT);
-    auto vindex = _mm256_lddqu_si256(( __m256i*)(&sorted_list[kp + k]));
+    auto vindex = _mm256_lddqu_si256((__m256i *)(&sorted_list[kp + k]));
     v8df vqxj = _mm512_i32gather_pd(vindex, &(q[X][0]), 8);
     v8df vqyj = _mm512_i32gather_pd(vindex, &(q[Y][0]), 8);
     v8df vqzj = _mm512_i32gather_pd(vindex, &(q[Z][0]), 8);
@@ -539,7 +556,7 @@ force_avx512_loopopt_swp(void) {
     for (k = 8; k < np; k += 8) {
       vk_idx = _mm512_add_epi64(vk_idx, vpitch);
       auto mask_loop_b = _mm512_cmp_epi64_mask(vk_idx, vnp, _MM_CMPINT_LT);
-      auto vindex_b = _mm256_lddqu_si256(( __m256i*)(&sorted_list[kp + k]));
+      auto vindex_b = _mm256_lddqu_si256((__m256i *)(&sorted_list[kp + k]));
       vqxj = _mm512_i32gather_pd(vindex_b, &(q[X][0]), 8);
       vqyj = _mm512_i32gather_pd(vindex_b, &(q[Y][0]), 8);
       vqzj = _mm512_i32gather_pd(vindex_b, &(q[Z][0]), 8);

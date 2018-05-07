@@ -704,7 +704,7 @@ main(void) {
   soadm.print_results(particle_number);
 #else
   measure(&force_pair, "SoA+Pair", particle_number);
-  measure(&force_sorted, "SoA+Pair", particle_number);
+  measure(&force_sorted, "SoA+Sorted", particle_number);
   measure(&force_sorted_swp, "SoA+Sorted+SWP", particle_number);
   measure(&force_avx2, "SoA+Sorted+AVX2", particle_number);
   measure(&force_avx2_swp, "SoA+Sorted+AVX2+SWP", particle_number);

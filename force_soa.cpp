@@ -252,6 +252,9 @@ force_avx2_swp(void) {
       const v4df vqjx_b = _mm256_set_pd(q[X][j_1_b], q[X][j_2_b], q[X][j_3_b], q[X][j_4_b]);
       const v4df vqjy_b = _mm256_set_pd(q[Y][j_1_b], q[Y][j_2_b], q[Y][j_3_b], q[Y][j_4_b]);
       const v4df vqjz_b = _mm256_set_pd(q[Z][j_1_b], q[Z][j_2_b], q[Z][j_3_b], q[Z][j_4_b]);
+      v4df vdx_b = vqjx_b - vqix;
+      v4df vdy_b = vqjy_b - vqiy;
+      v4df vdz_b = vqjz_b - vqiz;
       // --- 8< ---
       const v4df mask = vcl2 - vr2;
       vdf = _mm256_blendv_pd(vdf, vzero, mask);
@@ -300,9 +303,10 @@ force_avx2_swp(void) {
       vqjy = vqjy_b;
       vqjz = vqjz_b;
 
-      vdx = vqjx - vqix;
-      vdy = vqjy - vqiy;
-      vdz = vqjz - vqiz;
+      vdx = vdx_b;
+      vdy = vdy_b;
+      vdz = vdz_b;
+
       vr2 = vdx * vdx + vdy * vdy + vdz * vdz;
       vr6 = vr2 * vr2 * vr2;
       vdf = (vc24 * vr6 - vc48) / (vr6 * vr6 * vr2);

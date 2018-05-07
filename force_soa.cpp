@@ -220,10 +220,9 @@ force_avx2_swp(void) {
     double pfy = 0;
     double pfz = 0;
     const int kp = pointer[i];
-    v4df vqix = _mm256_set_pd(q[X][i], q[X][i], q[X][i], q[X][i]);
-    v4df vqiy = _mm256_set_pd(q[Y][i], q[Y][i], q[Y][i], q[Y][i]);
-    v4df vqiz = _mm256_set_pd(q[Z][i], q[Z][i], q[Z][i], q[Z][i]);
-
+    const v4df vqix = _mm256_set_pd(q[X][i], q[X][i], q[X][i], q[X][i]);
+    const v4df vqiy = _mm256_set_pd(q[Y][i], q[Y][i], q[Y][i], q[Y][i]);
+    const v4df vqiz = _mm256_set_pd(q[Z][i], q[Z][i], q[Z][i], q[Z][i]);
     int k = 0;
     int j_1 = sorted_list[kp + k];
     int j_2 = sorted_list[kp + k + 1];
@@ -240,24 +239,15 @@ force_avx2_swp(void) {
     v4df vr2 = vdx * vdx + vdy * vdy + vdz * vdz;
     v4df vr6 = vr2 * vr2 * vr2;
     v4df vdf = (vc24 * vr6 - vc48) / (vr6 * vr6 * vr2);
+    v4df mask = vcl2 - vr2;
+    vdf = _mm256_blendv_pd(vdf, vzero, mask);
+
     if (np < 4) {
-      vdf = _mm256_setzero_pd();
+      vdf =  _mm256_setzero_pd();
     }
 
     for (k = 4; k < (np / 4) * 4; k += 4) {
-      const int j_1_b = sorted_list[kp + k];
-      const int j_2_b = sorted_list[kp + k + 1];
-      const int j_3_b = sorted_list[kp + k + 2];
-      const int j_4_b = sorted_list[kp + k + 3];
-      const v4df vqjx_b = _mm256_set_pd(q[X][j_1_b], q[X][j_2_b], q[X][j_3_b], q[X][j_4_b]);
-      const v4df vqjy_b = _mm256_set_pd(q[Y][j_1_b], q[Y][j_2_b], q[Y][j_3_b], q[Y][j_4_b]);
-      const v4df vqjz_b = _mm256_set_pd(q[Z][j_1_b], q[Z][j_2_b], q[Z][j_3_b], q[Z][j_4_b]);
-      v4df vdx_b = vqjx_b - vqix;
-      v4df vdy_b = vqjy_b - vqiy;
-      v4df vdz_b = vqjz_b - vqiz;
       // --- 8< ---
-      const v4df mask = vcl2 - vr2;
-      vdf = _mm256_blendv_pd(vdf, vzero, mask);
       v4df vdfx = vdf * vdx;
       v4df vdfy = vdf * vdy;
       v4df vdfz = vdf * vdz;
@@ -293,26 +283,26 @@ force_avx2_swp(void) {
       p[X][j_4] -= dfx[0];
       p[Y][j_4] -= dfy[0];
       p[Z][j_4] -= dfz[0];
+
       // --- 8< ---
-      j_1 = j_1_b;
-      j_2 = j_2_b;
-      j_3 = j_3_b;
-      j_4 = j_4_b;
+      j_1 = sorted_list[kp + k];
+      j_2 = sorted_list[kp + k + 1];
+      j_3 = sorted_list[kp + k + 2];
+      j_4 = sorted_list[kp + k + 3];
 
-      vqjx = vqjx_b;
-      vqjy = vqjy_b;
-      vqjz = vqjz_b;
+      vqjx = _mm256_set_pd(q[X][j_1], q[X][j_2], q[X][j_3], q[X][j_4]);
+      vqjy = _mm256_set_pd(q[Y][j_1], q[Y][j_2], q[Y][j_3], q[Y][j_4]);
+      vqjz = _mm256_set_pd(q[Z][j_1], q[Z][j_2], q[Z][j_3], q[Z][j_4]);
 
-      vdx = vdx_b;
-      vdy = vdy_b;
-      vdz = vdz_b;
-
+      vdx = vqjx - vqix;
+      vdy = vqjy - vqiy;
+      vdz = vqjz - vqiz;
       vr2 = vdx * vdx + vdy * vdy + vdz * vdz;
       vr6 = vr2 * vr2 * vr2;
       vdf = (vc24 * vr6 - vc48) / (vr6 * vr6 * vr2);
+      mask = vcl2 - vr2;
+      vdf = _mm256_blendv_pd(vdf, vzero, mask);
     }
-    const v4df mask = vcl2 - vr2;
-    vdf = _mm256_blendv_pd(vdf, vzero, mask);
     v4df vdfx = vdf * vdx;
     v4df vdfy = vdf * vdy;
     v4df vdfz = vdf * vdz;
@@ -349,6 +339,8 @@ force_avx2_swp(void) {
     p[Y][j_4] -= dfy[0];
     p[Z][j_4] -= dfz[0];
 
+
+
     p[X][i] += pfx;
     p[Y][i] += pfy;
     p[Z][i] += pfz;
@@ -369,6 +361,7 @@ force_avx2_swp(void) {
       p[Z][j] -= df * dz;
     }
   }
+
 }
 //----------------------------------------------------------------------
 void

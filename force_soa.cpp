@@ -700,7 +700,7 @@ main(void) {
   measure(&force_avx512_loopopt, "SoA+AVX-512+CDE+RLE", particle_number);
   soadm.print_results(particle_number);
 #elif AVX512_LOOPOPT_SWP
-  measure(&force_avx512_loopopt_swp, "SoA+AVX-512+CDE+SWP", particle_number);
+  measure(&force_avx512_loopopt_swp, "SoA+AVX-512+CDE+RLE+SWP", particle_number);
   soadm.print_results(particle_number);
 #else
   measure(&force_pair, "SoA+Pair", particle_number);
@@ -711,7 +711,7 @@ main(void) {
 #ifdef AVX512
   measure(&force_avx512, "SoA+AVX-512+CDE", particle_number);
   measure(&force_avx512_loopopt, "SoA+AVX-512+CDE+RLE", particle_number);
-  measure(&force_avx512_loopopt_swp, "SoA+AVX-512+CDE+SWP", particle_number);
+  measure(&force_avx512_loopopt_swp, "SoA+AVX-512+CDE+RLE+SWP", particle_number);
 #endif //AVX512
 #endif
 }

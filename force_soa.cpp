@@ -251,6 +251,9 @@ force_avx2_swp(void) {
       int j_2_b = sorted_list[kp + k + 1];
       int j_3_b = sorted_list[kp + k + 2];
       int j_4_b = sorted_list[kp + k + 3];
+      // We found that it was fastest to calculate only vqjx_b here.
+      // If we calculate vqjy_b or vqjz_b here, it becomes very slow.
+      v4df vqjx_b = _mm256_set_pd(q[X][j_1_b], q[X][j_2_b], q[X][j_3_b], q[X][j_4_b]);
       // --- 8< ---
       v4df vdfx = vdf * vdx;
       v4df vdfy = vdf * vdy;
@@ -289,14 +292,17 @@ force_avx2_swp(void) {
       p[Z][j_4] -= dfz[0];
 
       // --- 8< ---
+      v4df vqjy_b = _mm256_set_pd(q[Y][j_1_b], q[Y][j_2_b], q[Y][j_3_b], q[Y][j_4_b]);
+      v4df vqjz_b = _mm256_set_pd(q[Z][j_1_b], q[Z][j_2_b], q[Z][j_3_b], q[Z][j_4_b]);
+
       j_1 = j_1_b;
       j_2 = j_2_b;
       j_3 = j_3_b;
       j_4 = j_4_b;
 
-      vqjx = _mm256_set_pd(q[X][j_1], q[X][j_2], q[X][j_3], q[X][j_4]);
-      vqjy = _mm256_set_pd(q[Y][j_1], q[Y][j_2], q[Y][j_3], q[Y][j_4]);
-      vqjz = _mm256_set_pd(q[Z][j_1], q[Z][j_2], q[Z][j_3], q[Z][j_4]);
+      vqjx = vqjx_b;
+      vqjy = vqjy_b;
+      vqjz = vqjz_b;
 
       vdx = vqjx - vqix;
       vdy = vqjy - vqiy;

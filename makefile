@@ -21,6 +21,7 @@ endif
 
 SOA_BINS =soa.out soa_pair.out soa_sorted.out soa_sorted_swp.out
 SOA_BINS +=soa_avx2.out
+SOA_BINS +=soa_avx2_swp.out
 ifdef AVX512
 SOA_BINS +=soa_avx512.out
 SOA_BINS +=soa_avx512_loopopt.out
@@ -89,6 +90,9 @@ soa_sorted_swp.out: force_soa.cpp
 soa_avx2.out: force_soa.cpp
 	$(CC) $(CPPFLAGS) -DAVX2 $< -o $@
 
+soa_avx2_swp.out: force_soa.cpp
+	$(CC) $(CPPFLAGS) -DAVX2_SWP $< -o $@
+
 soa_avx512.out: force_soa.cpp
 	$(CC) $(CPPFLAGS) -DAVX512 -DAVX512_SIMPLE $< -o $@
 
@@ -110,8 +114,8 @@ test: $(TARGET)
 	./soa_avx2.out > soa_avx2.dat
 	diff soa_pair.dat soa_avx2.dat
 
-REF=aos_avx2.out
-SUB=aos_sorted_z_avx2_swp.out
+REF=soa_avx2.out
+SUB=soa_avx2_swp.out
 
 test2: $(REF) $(SUB)
 	./$(REF) > orig.dat

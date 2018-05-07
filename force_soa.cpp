@@ -202,6 +202,104 @@ force_avx2(void) {
 }
 //----------------------------------------------------------------------
 void
+force_avx2_swp(void) {
+  const int pn = particle_number;
+  const v4df vzero = _mm256_set_pd(0, 0, 0, 0);
+  const v4df vcl2 = _mm256_set_pd(CL2, CL2, CL2, CL2);
+  const v4df vc24 = _mm256_set_pd(24 * dt, 24 * dt, 24 * dt, 24 * dt);
+  const v4df vc48 = _mm256_set_pd(48 * dt, 48 * dt, 48 * dt, 48 * dt);
+  for (int i = 0; i < pn; i++) {
+    const double qix = q[X][i];
+    const double qiy = q[Y][i];
+    const double qiz = q[Z][i];
+    const int np = number_of_partners[i];
+    double pfx = 0;
+    double pfy = 0;
+    double pfz = 0;
+    const int kp = pointer[i];
+    const v4df vqix = _mm256_set_pd(q[X][i], q[X][i], q[X][i], q[X][i]);
+    const v4df vqiy = _mm256_set_pd(q[Y][i], q[Y][i], q[Y][i], q[Y][i]);
+    const v4df vqiz = _mm256_set_pd(q[Z][i], q[Z][i], q[Z][i], q[Z][i]);
+
+    int k = 0;
+    for (k = 0; k < (np / 4) * 4; k += 4) {
+      const int j_1 = sorted_list[kp + k];
+      const int j_2 = sorted_list[kp + k + 1];
+      const int j_3 = sorted_list[kp + k + 2];
+      const int j_4 = sorted_list[kp + k + 3];
+
+      const v4df vqjx = _mm256_set_pd(q[X][j_1], q[X][j_2], q[X][j_3], q[X][j_4]);
+      const v4df vqjy = _mm256_set_pd(q[Y][j_1], q[Y][j_2], q[Y][j_3], q[Y][j_4]);
+      const v4df vqjz = _mm256_set_pd(q[Z][j_1], q[Z][j_2], q[Z][j_3], q[Z][j_4]);
+
+      const v4df vdx = vqjx - vqix;
+      const v4df vdy = vqjy - vqiy;
+      const v4df vdz = vqjz - vqiz;
+      const v4df vr2 = vdx * vdx + vdy * vdy + vdz * vdz;
+      // --- 8< ---
+      const v4df vr6 = vr2 * vr2 * vr2;
+      v4df vdf = (vc24 * vr6 - vc48) / (vr6 * vr6 * vr2);
+      const v4df mask = vcl2 - vr2;
+      vdf = _mm256_blendv_pd(vdf, vzero, mask);
+      v4df vdfx = vdf * vdx;
+      v4df vdfy = vdf * vdy;
+      v4df vdfz = vdf * vdz;
+      double *dfx = (double*)(&vdfx);
+      double *dfy = (double*)(&vdfy);
+      double *dfz = (double*)(&vdfz);
+
+      pfx += dfx[3];
+      pfy += dfy[3];
+      pfz += dfz[3];
+
+      p[X][j_1] -= dfx[3];
+      p[Y][j_1] -= dfy[3];
+      p[Z][j_1] -= dfz[3];
+
+      pfx += dfx[2];
+      pfy += dfy[2];
+      pfz += dfz[2];
+      p[X][j_2] -= dfx[2];
+      p[Y][j_2] -= dfy[2];
+      p[Z][j_2] -= dfz[2];
+
+      pfx += dfx[1];
+      pfy += dfy[1];
+      pfz += dfz[1];
+      p[X][j_3] -= dfx[1];
+      p[Y][j_3] -= dfy[1];
+      p[Z][j_3] -= dfz[1];
+
+      pfx += dfx[0];
+      pfy += dfy[0];
+      pfz += dfz[0];
+      p[X][j_4] -= dfx[0];
+      p[Y][j_4] -= dfy[0];
+      p[Z][j_4] -= dfz[0];
+    }
+    p[X][i] += pfx;
+    p[Y][i] += pfy;
+    p[Z][i] += pfz;
+    for (int k = (np / 4) * 4; k < np; k++) {
+      const int j = sorted_list[kp + k];
+      double dx = q[X][j] - qix;
+      double dy = q[Y][j] - qiy;
+      double dz = q[Z][j] - qiz;
+      double r2 = (dx * dx + dy * dy + dz * dz);
+      if (r2 > CL2) continue;
+      double r6 = r2 * r2 * r2;
+      double df = ((24.0 * r6 - 48.0) / (r6 * r6 * r2)) * dt;
+      p[X][i] += df * dx;
+      p[Y][i] += df * dy;
+      p[Z][i] += df * dz;
+      p[X][j] -= df * dx;
+      p[Y][j] -= df * dy;
+      p[Z][j] -= df * dz;
+    }
+  }
+}
+//----------------------------------------------------------------------
+void
 force_sorted_swp(void) {
   const int pn = particle_number;
   for (int i = 0; i < pn; i++) {
@@ -516,6 +614,9 @@ main(void) {
   soadm.print_results(particle_number);
 #elif AVX2
   measure(&force_avx2, "avx2", particle_number);
+  soadm.print_results(particle_number);
+#elif AVX2_SWP
+  measure(&force_avx2, "avx2_swp", particle_number);
   soadm.print_results(particle_number);
 #elif AVX512_SIMPLE
   measure(&force_avx512, "avx512", particle_number);

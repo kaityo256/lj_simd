@@ -247,6 +247,10 @@ force_avx2_swp(void) {
     }
 
     for (k = 4; k < (np / 4) * 4; k += 4) {
+      int j_1_b = sorted_list[kp + k];
+      int j_2_b = sorted_list[kp + k + 1];
+      int j_3_b = sorted_list[kp + k + 2];
+      int j_4_b = sorted_list[kp + k + 3];
       // --- 8< ---
       v4df vdfx = vdf * vdx;
       v4df vdfy = vdf * vdy;
@@ -285,10 +289,10 @@ force_avx2_swp(void) {
       p[Z][j_4] -= dfz[0];
 
       // --- 8< ---
-      j_1 = sorted_list[kp + k];
-      j_2 = sorted_list[kp + k + 1];
-      j_3 = sorted_list[kp + k + 2];
-      j_4 = sorted_list[kp + k + 3];
+      j_1 = j_1_b;
+      j_2 = j_2_b;
+      j_3 = j_3_b;
+      j_4 = j_4_b;
 
       vqjx = _mm256_set_pd(q[X][j_1], q[X][j_2], q[X][j_3], q[X][j_4]);
       vqjy = _mm256_set_pd(q[Y][j_1], q[Y][j_2], q[Y][j_3], q[Y][j_4]);

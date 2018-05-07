@@ -3,20 +3,21 @@
 # icpc (ICC) 16.0.4 20160811
 # -O3 -xHOST -std=c++11 -w2 -w3 -diag-disable:remark -restrict 
 AoS
-N=119164, pair 8801 [ms]
-N=119164, sorted 7148 [ms]
-N=119164, sorted_swp 5765 [ms]
-N=119164, avx2 3528 [ms]
-N=119164, avx2_swp 3326 [ms]
-N=119164, sorted_z 5338 [ms]
-N=119164, sorted_z_avx2 3394 [ms]
-N=119164, sorted_z_avx2_swp 3309 [ms]
+N=119164, AoS4+Pair 8810 [ms]
+N=119164, AoS4+Sorted 7147 [ms]
+N=119164, AoS4+Sorted+SWP 5765 [ms]
+N=119164, AoS4+AVX2 3526 [ms]
+N=119164, AoS4+AVX2+SWP 3350 [ms]
+N=119164, AoS8+Sorted 5337 [ms]
+N=119164, AoS8+Sorted+AVX2 3392 [ms]
+N=119164, AoS8+Sorted+AVX2+SWP 3307 [ms]
 
 SoA
-N=119164, pair 6619 [ms]
-N=119164, sorted 7047 [ms]
-N=119164, sorted_swp 5583 [ms]
-N=119164, avx2 5683 [ms]
+N=119164, SoA+Pair 6596 [ms]
+N=119164, SoA+Pair 7069 [ms]
+N=119164, SoA+Sorted+SWP 5572 [ms]
+N=119164, SoA+Sorted+AVX2 5672 [ms]
+N=119164, SoA+Sorted+AVX2+SWP 5198 [ms]
 
 # ISSP System C
 # Intel(R) Xeon(R) Gold 6148 CPU @ 2.40GHz

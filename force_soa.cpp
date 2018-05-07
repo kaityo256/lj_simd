@@ -679,38 +679,39 @@ main(void) {
   check_pairlist(particle_number, number_of_pairs, number_of_partners, i_particles, j_particles, &soadm);
   sortpair(particle_number, number_of_pairs, number_of_partners, i_particles, j_particles, pointer, sorted_list);
 #ifdef PAIR
-  measure(&force_pair, "pair", particle_number);
+  measure(&force_pair, "SoA+Pair", particle_number);
   soadm.print_results(particle_number);
 #elif SORTED
-  measure(&force_sorted, "sorted", particle_number);
+  measure(&force_sorted, "SoA+Sorted", particle_number);
   soadm.print_results(particle_number);
 #elif SORTED_SWP
-  measure(&force_sorted_swp, "sorted_swp", particle_number);
+  measure(&force_sorted_swp, "SoA+Sorted+SWP", particle_number);
   soadm.print_results(particle_number);
 #elif AVX2
-  measure(&force_avx2, "avx2", particle_number);
+  measure(&force_avx2, "SoA+Sorted+AVX2", particle_number);
   soadm.print_results(particle_number);
 #elif AVX2_SWP
-  measure(&force_avx2_swp, "avx2_swp", particle_number);
+  measure(&force_avx2_swp, "SoA+Sorted+AVX2+SWP", particle_number);
   soadm.print_results(particle_number);
 #elif AVX512_SIMPLE
-  measure(&force_avx512, "avx512", particle_number);
+  measure(&force_avx512, "SoA+AVX-512+CDE", particle_number);
   soadm.print_results(particle_number);
 #elif AVX512_LOOPOPT
-  measure(&force_avx512_loopopt, "avx512_loopopt", particle_number);
+  measure(&force_avx512_loopopt, "SoA+AVX-512+CDE+RLE", particle_number);
   soadm.print_results(particle_number);
 #elif AVX512_LOOPOPT_SWP
-  measure(&force_avx512_loopopt_swp, "avx512_loopopt_swp", particle_number);
+  measure(&force_avx512_loopopt_swp, "SoA+AVX-512+CDE+SWP", particle_number);
   soadm.print_results(particle_number);
 #else
-  measure(&force_pair, "pair", particle_number);
-  measure(&force_sorted, "sorted", particle_number);
-  measure(&force_sorted_swp, "sorted_swp", particle_number);
-  measure(&force_avx2, "avx2", particle_number);
+  measure(&force_pair, "SoA+Pair", particle_number);
+  measure(&force_sorted, "SoA+Pair", particle_number);
+  measure(&force_sorted_swp, "SoA+Sorted+SWP", particle_number);
+  measure(&force_avx2, "SoA+Sorted+AVX2", particle_number);
+  measure(&force_avx2_swp, "SoA+Sorted+AVX2+SWP", particle_number);
 #ifdef AVX512
-  measure(&force_avx512, "avx512", particle_number);
-  measure(&force_avx512_loopopt, "avx512_loopopt", particle_number);
-  measure(&force_avx512_loopopt_swp, "avx512_loopopt_swp", particle_number);
+  measure(&force_avx512, "SoA+AVX-512+CDE", particle_number);
+  measure(&force_avx512_loopopt, "SoA+AVX-512+CDE+RLE", particle_number);
+  measure(&force_avx512_loopopt_swp, "SoA+AVX-512+CDE+SWP", particle_number);
 #endif //AVX512
 #endif
 }

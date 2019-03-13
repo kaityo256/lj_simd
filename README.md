@@ -1,5 +1,7 @@
 # SIMD Vectorization for Force Calculation of Lennard-Jones Potential
 
+[![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)
+
 Sample codes of SIMD vectorization for force calculation of Lennard-Jones potential using AVX2 and AVX-512.
 
 ## Usage
